@@ -219,9 +219,9 @@
               <div class="h-100 d-flex flex-column">
                 <div class="p-3 shadow-sm">
                   <h5>
-                    City Objects
+                    Feature Collection
                     <span class="badge badge-secondary">
-                      {{ Object.keys(activeCityModel.CityObjects).length }} total
+                      {{ Object.keys(activeFeatureCollection.features).length }} total
                     </span>
                   </h5>
                   <input
@@ -248,13 +248,13 @@
                     </button>
                   </div>
                 </div>
-                <CityObjectsTree
-                  :citymodel="activeCityModel"
-                  :cityobjects="firstLevelObjects"
-                  :selected_objid="selected_objid"
-                  :matches="matches"
-                  @object_clicked="move_to_object( [ $event, - 1, - 1 ] )"
-                ></CityObjectsTree>
+                <FeatureCollectionTree
+                        :featurecollection="activeFeatureCollection.features"
+                        :selected_fid="selected_fid"
+                        :featuregeoms="activeFeatureCollection"
+                        :matches="matches"
+                        @object_clicked="move_to_object([$event])"
+                ></FeatureCollectionTree>
               </div>
             </div>
           </div>
@@ -265,35 +265,35 @@
             >
               <CityObjectCard
                 v-if="existsSelected"
-                :citymodel="activeCityModel"
-                :cityobject="activeCityModel.CityObjects[selected_objid]"
-                :cityobject_id="selected_objid"
+                :citymodel="activeFeatureCollection"
+                :cityobject="activeFeatureCollection.CityObjects[selected_fid]"
+                :cityobject_id="selected_fid"
                 :geometry-id="selectedGeometryId"
                 :boundary-id="selectedBoundaryId"
                 :expanded="0"
                 :editable="true"
-                @input="activeCityModel.CityObjects[selected_objid] = $event"
-                @close="selected_objid = null"
+                @input="activeFeatureCollection.CityObjects[selected_fid] = $event"
+                @close="selected_fid = null"
               ></CityObjectCard>
             </div>
-            <ThreeJsViewer
-              ref="viewer"
-              :citymodel="activeCityModel"
-              :selected-objid="selected_objid"
-              :selected-geom-idx="selectedGeometryId"
-              :selected-boundary-idx="selectedBoundaryId"
-              :object-colors="object_colors"
-              :surface-colors="surface_colors"
-              :background-color="background_color"
-              :selection-color="selectionColor"
-              :show-semantics="showSemantics"
-              :active-lod="activeLoD"
-              :camera-spotlight="cameraLight"
-              :highlight-selected-surface="highlightSurface"
-              @object_clicked="move_to_object($event)"
-              @rendering="loading = $event"
-              @chunkLoaded="availableLoDs = $refs.viewer.getLods()"
-            ></ThreeJsViewer>
+<!--            <ThreeJsViewer-->
+<!--              ref="viewer"-->
+<!--              :citymodel="activeFeatureCollection"-->
+<!--              :selected-objid="selected_objid"-->
+<!--              :selected-geom-idx="selectedGeometryId"-->
+<!--              :selected-boundary-idx="selectedBoundaryId"-->
+<!--              :object-colors="object_colors"-->
+<!--              :surface-colors="surface_colors"-->
+<!--              :background-color="background_color"-->
+<!--              :selection-color="selectionColor"-->
+<!--              :show-semantics="showSemantics"-->
+<!--              :active-lod="activeLoD"-->
+<!--              :camera-spotlight="cameraLight"-->
+<!--              :highlight-selected-surface="highlightSurface"-->
+<!--              @object_clicked="move_to_object($event)"-->
+<!--              @rendering="loading = $event"-->
+<!--              @chunkLoaded="availableLoDs = $refs.viewer.getLods()"-->
+<!--            ></ThreeJsViewer>-->
             <div
               style="position: absolute; z-index: 1; bottom: 0px; left: 0px"
             >
@@ -376,7 +376,7 @@
               <div class="custom-file">
                 <input
                   id="inputGroupFile01"
-                  ref="cityJSONFile"
+                  ref="jsonFGFile"
                   type="file"
                   class="custom-file-input"
                   @change="selectedFile"
@@ -414,10 +414,12 @@ import ColorEditor from './components/ColorEditor.vue';
 import NinjaSidebar from './components/NinjaSidebar.vue';
 import $ from 'jquery';
 import _ from 'lodash';
+import FeatureCollectionTree from "./components/FeatureCollectionTree";
 
 export default {
 	name: 'App',
 	components: {
+    FeatureCollectionTree,
 		ColorEditor,
 		NinjaSidebar,
 	},
@@ -426,8 +428,8 @@ export default {
 		return {
 			file_loaded: false,
 			search_term: "",
-			citymodel: {},
-			selected_objid: null,
+			featuregeoms: {},
+			selected_fid: null,
 			selectedGeometryId: - 1,
 			selectedBoundaryId: - 1,
 			loading: false,
@@ -476,9 +478,9 @@ export default {
 
 	},
 	computed: {
-		activeCityModel: function () {
+		activeFeatureCollection: function () {
 
-      return this.citymodel;
+      return this.featuregeoms;
 
 		},
 		logoUrl: function () {
@@ -494,7 +496,7 @@ export default {
 		},
 		firstLevelObjects: function () {
 
-			return _.pickBy( this.activeCityModel.CityObjects, function ( cityobject ) {
+			return _.pickBy( this.activeFeatureCollection.CityObjects, function (cityobject ) {
 
 				return ! ( cityobject.parents && cityobject.parents.length > 0 );
 
@@ -503,7 +505,7 @@ export default {
 		},
 		filteredCityObjects: function () {
 
-			var result = _.pickBy( this.activeCityModel.CityObjects, function ( value, key ) {
+			var result = _.pickBy( this.activeFeatureCollection.CityObjects, function (value, key ) {
 
 				var regex = RegExp( this.search_term, "i" );
 				var obj_json = JSON.stringify( value );
@@ -516,16 +518,16 @@ export default {
 		},
 		existsSelected: function () {
 
-			return this.selected_objid != null;
+			return this.selected_fid != null;
 
 		}
 	},
 	watch: {
-		selected_objid: function () {
+		selected_fid: function () {
 
-			if ( this.selected_objid != null ) {
+			if ( this.selected_fid != null ) {
 
-				var card_id = $.escapeSelector( this.selected_objid );
+				var card_id = $.escapeSelector( this.selected_fid );
 				$( `#${card_id}` )[ 0 ].scrollIntoViewIfNeeded();
 
 			}
@@ -538,50 +540,39 @@ export default {
 			if ( ids ) {
 
 				// `ids` is in the form of [ objectId, geometryId, boudnaryId ]
-				this.selected_objid = ids[ 0 ];
-				this.selectedGeometryId = ids[ 1 ];
-				this.selectedBoundaryId = ids[ 2 ];
+				this.selected_fid = ids[ 0 ];
+				// this.selectedGeometryId = ids[ 1 ];
+				// this.selectedBoundaryId = ids[ 2 ];
 
 			} else {
 
-				this.selected_objid = null;
-				this.selectedGeometryId = - 1;
-				this.selectedBoundaryId = - 1;
+				this.selected_fid = null;
+				// this.selectedGeometryId = - 1;
+				// this.selectedBoundaryId = - 1;
 
 			}
 
 		},
 		reset() {
 
-			this.citymodel = {};
+			this.featuregeoms = {};
 			this.search_term = "";
 			this.file_loaded = false;
 
 		},
-		matches( coid, cityobject ) {
+		matches( feature ) {
 
 			var regex = RegExp( this.search_term, "i" );
-			var obj_json = JSON.stringify( cityobject );
-			if ( cityobject.children && cityobject.children.length > 0 ) {
-
-				return regex.test( coid ) || regex.test( obj_json ) || cityobject.children.some( obj_id => {
-
-					return this.matches( obj_id, this.citymodel.CityObjects[ obj_id ] );
-
-				} );
-
-			} else {
-
-				return regex.test( coid ) || regex.test( obj_json );
-
-			}
+			var f_json = JSON.stringify( feature );
+      return regex.test(f_json);
 
 		},
-		validateCityJSON( cm ) {
+		validateJSONFG(fg) {
 
-			if ( cm.type != "CityJSON" ) {
+      //TODO: not sure how else can we validate that it is a json-fg file?
+			if ( fg.type != "FeatureCollection" ) {
 
-				this.error_message = "This is not a CityJSON file!";
+				this.error_message = "This file is not a FeatureCollection!";
 
 				return false;
 
@@ -594,7 +585,7 @@ export default {
 
 			this.loading = true;
 
-			let file = this.$refs.cityJSONFile.files[ 0 ];
+			let file = this.$refs.jsonFGFile.files[ 0 ];
 			if ( ! file || file.type != "application/json" ) {
 
 				this.error_message = "This is not a JSON file!";
@@ -607,16 +598,16 @@ export default {
 			reader.readAsText( file, "UTF-8" );
 			reader.onload = evt => {
 
-				var cm = JSON.parse( evt.target.result );
+				const fg = JSON.parse( evt.target.result );
 
-				if ( this.validateCityJSON( cm ) == false ) {
+				if ( this.validateJSONFG( fg ) === false ) {
 
 					this.loading = false;
 					return;
 
 				}
 
-				this.citymodel = cm;
+				this.featuregeoms = fg;
 
 				this.file_loaded = true;
 
@@ -641,7 +632,7 @@ export default {
 		},
 		downloadModel() {
 
-			var text = JSON.stringify( this.citymodel );
+			var text = JSON.stringify( this.featuregeoms );
 
 			this.download( "citymodel.json", text );
 

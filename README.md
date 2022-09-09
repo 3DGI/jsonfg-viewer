@@ -40,4 +40,4 @@ Other frameworks used:
 
 # Attribution
 
-The JSON-FG viewer is an adaptation of the [CityJSON viewer](https://viewer.cityjson.org).
+The JSON-FG viewer is an adaptation of the [CityJSON viewer](https://viewer.cityjson.org) and its components, namely [cityjson-vue-components](https://github.com/cityjson/cityjson-vue-components) and [cityjson-threejs-loader](https://github.com/cityjson/cityjson-threejs-loader).
