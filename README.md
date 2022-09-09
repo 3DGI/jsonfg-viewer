@@ -1,16 +1,10 @@
-# ![ninja logo](logo_small.png) ninja
-
-![](images/screenshot-3dbag.png)
-
-*ninja* is a web viewer for [CityJSON](http://www.cityjson.org) files. It supports most features as described by the CityJSON specification.
-
-*ninja* stands for "**n**inja **i**s **n**ot **j**ust **a**zul" to tease [azul](https://github.com/tudelft3d/azul), the best macOS CityJSON viewer!
+# JSON-FG viewer
 
 # Use
 
 ## Public version
 
-You can run `ninja` without installation by visiting [ninja.cityjson.org](https://ninja.cityjson.org).
+You can run the `jsonfg-viewer` without installation by visiting ...
 
 ## Installation
 
@@ -43,3 +37,7 @@ Other frameworks used:
 - [Vue.js](https://vuejs.org/)
 - [Bootstrap](https://getbootstrap.com/)
 - [Parcel.js](https://parceljs.org/)
+
+# Attribution
+
+The JSON-FG viewer is an adaptation of the [CityJSON viewer](https://viewer.cityjson.org).

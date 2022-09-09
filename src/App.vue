@@ -30,8 +30,8 @@
             </button>
           </div>
           <div class="modal-body">
-            <p>This is ninja, our viewer for CityJSON.</p>
-            <p>The source code is available in <a href="https://github.com/cityjson/ninja">GitHub</a>. Have fun and, please, report any issues found <a href="https://github.com/cityjson/ninja/issues">here</a>.</p>
+            <p>This is the JSON-FG viewer.</p>
+            <p>The source code is available in <a href="https://github.com/3DGI/jsonfg-viewer">GitHub</a>. Have fun and, please, report any issues found <a href="https://github.com/3DGI/jsonfg-viewer/issues">here</a>.</p>
             <p>Here is what you can do:</p>
             <ul>
               <li>Click on an object ID in the tree view on the left to select it.</li>
@@ -41,6 +41,7 @@
               <li>Toggle the editing mode with the <i class="fas fa-pen mx-1 text-muted"></i> icon to edit it. Then save the changes.</li>
               <li>Download the city model with your changes by clicking on <b>Download</b>.</li>
             </ul>
+            <p>This JSON-FG viewer is an adaptation of the excellent <a href="https://viewer.cityjson.org">CityJSON viewer</a>, which you can use for visualising CityJSON files.</p>
           </div>
         </div>
       </div>
@@ -177,14 +178,6 @@
       class="navbar navbar-dark"
       :class="[ file_loaded ? 'bg-dark' : 'bg-white' ]"
     >
-      <a
-        class="navbar-brand"
-        :class="[ file_loaded ? 'text-white' : 'text-dark' ]"
-        href="#"
-      ><img
-        :src="logoUrl"
-        :class="[ file_loaded ? 'logo-regular' : 'logo-big' ]"
-      > <span :class="{ 'text-big' : !file_loaded }">ninja</span></a>
       <div class="d-flex justify-content-end align-items-center col-auto p-0">
         <div
           v-show="loading"
@@ -357,19 +350,10 @@
             >
               <div class="m-1 px-2">
                 <a
-                  href="https://cityjson.org"
-                  target="_blank"
-                ><img
-                  src="https://www.cityjson.org/assets/images/cityjson_logo.svg"
-                  alt=""
-                ></a>
-              </div>
-              <div class="m-1 px-2">
-                <a
                   class="card-link"
-                  href="https://github.com/cityjson/ninja"
+                  href="https://github.com/3DGI/jsonfg-viewer"
                   target="_blank"
-                ><i class="fab fa-github"></i> ninja v0.6.1</a>
+                ><i class="fab fa-github"></i> jsonfg-viewer v0.1.0</a>
               </div>
             </div>
           </div>
@@ -384,7 +368,7 @@
         <div class="row">
           <main class="col-12 py-md-3 pl-md-5">
             <h2>File upload</h2>
-            <p>Upload a CityJSON file to have fun!</p>
+            <p>Upload a JSON-FG file:</p>
             <div class="input-group mb-3">
               <div class="input-group-prepend">
                 <span class="input-group-text"><i class="fas fa-upload mr-1"></i> Upload</span>
@@ -667,16 +651,4 @@ export default {
 </script>
 
 <style scoped>
-.logo-big {
-  position: absolute;
-  height: 120px;
-}
-
-.logo-regular {
-  height: 24px;
-}
-
-.text-big {
-  padding-left: 140px;
-}
 </style>
