@@ -218,12 +218,6 @@
     >
       <div class="container-fluid h-100">
         <div class="row h-100">
-          <div class="d-sm-none d-lg-block col-lg-1 bg-dark p-0">
-            <ninja-sidebar
-              v-model="active_sidebar"
-              :with_versions="has_versions"
-            ></ninja-sidebar>
-          </div>
           <div class="col-4 p-0 h-100">
             <div
               v-show="active_sidebar == 'objects'"
@@ -233,12 +227,6 @@
                 <div class="p-3 shadow-sm">
                   <h5>
                     City Objects
-                    <span
-                      v-if="active_version != null"
-                      class="badge badge-primary mr-1"
-                    >
-                      Version: {{ active_version | truncate(7) }}
-                    </span>
                     <span class="badge badge-secondary">
                       {{ Object.keys(activeCityModel.CityObjects).length }} total
                     </span>
@@ -275,21 +263,6 @@
                   @object_clicked="move_to_object( [ $event, - 1, - 1 ] )"
                 ></CityObjectsTree>
               </div>
-            </div>
-            <div
-              v-if="has_versions"
-              v-show="active_sidebar == 'versions'"
-              class="p-3"
-            >
-              <branch-selector
-                v-model="active_branch"
-                :versioning="citymodel.versioning"
-              ></branch-selector>
-              <version-list
-                :versioning="citymodel.versioning"
-                :active_branch="active_branch"
-                :active_version.sync="active_version"
-              ></version-list>
             </div>
           </div>
           <div class="col-7 p-0 h-100">
@@ -455,8 +428,6 @@
 <script>
 import ColorEditor from './components/ColorEditor.vue';
 import NinjaSidebar from './components/NinjaSidebar.vue';
-import BranchSelector from './components/Versioning/BranchSelector.vue';
-import VersionList from './components/Versioning/VersionList.vue';
 import $ from 'jquery';
 import _ from 'lodash';
 
@@ -465,8 +436,6 @@ export default {
 	components: {
 		ColorEditor,
 		NinjaSidebar,
-		BranchSelector,
-		VersionList
 	},
 	data: function () {
 
@@ -480,9 +449,6 @@ export default {
 			loading: false,
 			error_message: null,
 			active_sidebar: 'objects', // objects/versions
-			has_versions: false,
-			active_branch: 'master',
-			active_version: null,
 			object_colors: {
 				"Building": 0x7497df,
 				"BuildingPart": 0x7497df,
@@ -528,15 +494,7 @@ export default {
 	computed: {
 		activeCityModel: function () {
 
-			if ( this.active_version != null ) {
-
-				return this.extract_citymodel( this.active_version );
-
-			} else {
-
-				return this.citymodel;
-
-			}
+      return this.citymodel;
 
 		},
 		logoUrl: function () {
@@ -591,26 +549,6 @@ export default {
 		}
 	},
 	methods: {
-		extract_citymodel( vid ) {
-
-			var object_dict = this.citymodel.versioning.versions[ vid ].objects;
-			var original_objects = this.citymodel.CityObjects;
-
-			var result = $.extend( {}, this.citymodel );
-
-			result[ "CityObjects" ] = {};
-
-			delete result[ "versioning" ];
-
-			Object.keys( object_dict ).forEach( ( key ) => {
-
-				result[ "CityObjects" ][ key ] = $.extend( {}, original_objects[ object_dict[ key ] ] );
-
-			} );
-
-			return result;
-
-		},
 		move_to_object( ids ) {
 
 			if ( ids ) {
@@ -695,8 +633,6 @@ export default {
 				}
 
 				this.citymodel = cm;
-
-				this.has_versions = "versioning" in cm;
 
 				this.file_loaded = true;
 
