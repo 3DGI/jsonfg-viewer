@@ -263,18 +263,13 @@
               class="col-auto m-2"
               style="position: absolute; z-index: 1"
             >
-              <CityObjectCard
+              <FeatureCard
                 v-if="existsSelected"
-                :citymodel="activeFeatureCollection"
-                :cityobject="activeFeatureCollection.CityObjects[selected_fid]"
-                :cityobject_id="selected_fid"
-                :geometry-id="selectedGeometryId"
-                :boundary-id="selectedBoundaryId"
+                :featuregeoms="activeFeatureCollection"
+                :feature_id="selected_fid"
                 :expanded="0"
-                :editable="true"
-                @input="activeFeatureCollection.CityObjects[selected_fid] = $event"
-                @close="selected_fid = null"
-              ></CityObjectCard>
+                @close="selected_fid = null">
+              </FeatureCard>
             </div>
 <!--            <ThreeJsViewer-->
 <!--              ref="viewer"-->
@@ -415,11 +410,13 @@ import NinjaSidebar from './components/NinjaSidebar.vue';
 import $ from 'jquery';
 import _ from 'lodash';
 import FeatureCollectionTree from "./components/FeatureCollectionTree";
+import FeatureCard from "./components/FeatureCard";
 
 export default {
 	name: 'App',
 	components: {
     FeatureCollectionTree,
+    FeatureCard,
 		ColorEditor,
 		NinjaSidebar,
 	},
