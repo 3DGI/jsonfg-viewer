@@ -2,7 +2,7 @@
   <div>
     <div class="d-flex justify-content-between align-items-center">
       <div class="text-secondary">
-        <small><em>featureType:</em> {{ feature.featureType }}</small>
+        <small><em>featureType:</em> {{ hasFeatureType ? feature.featureType : "not present" }}</small>
       </div>
       <div class="col-auto p-0">
         <button
@@ -22,8 +22,11 @@
       <small v-if="isTimeDate || isTimeStamp">
         <em>time: </em>{{ isTimeStamp === true ? feature.time.timestamp : feature.time.date }}
       </small>
-      <small v-if="isTimeInterval">
+      <small v-else-if="isTimeInterval">
         <em>time: </em>{{ feature.time.interval[0] }}–{{ feature.time.interval[1] }}
+      </small>
+      <small v-else>
+        <em>time: </em>null
       </small>
     </div>
     <div class="d-flex mt-2">
@@ -109,22 +112,25 @@ export default {
 		},
 		hasGeometry: function () {
 
-			return this.feature.hasOwnProperty('geometry') && this.feature.geometry !== null;
+			return this.feature.hasOwnProperty('geometry') ? this.feature.geometry !== null : false;
 
 		},
 		hasPlace: function () {
 
-			return this.feature.hasOwnProperty('place') && this.feature.place !== null;
+			return this.feature.hasOwnProperty('place') ? this.feature.place !== null : false;
 
 		},
     isTimeDate: function () {
-      return this.feature.hasOwnProperty('time') && this.feature.time.hasOwnProperty('date');
+      return this.feature.hasOwnProperty('time') ? this.feature.time !== null && this.feature.time.hasOwnProperty('date') : false;
     },
     isTimeStamp: function () {
-      return this.feature.hasOwnProperty('time') && this.feature.time.hasOwnProperty('timestamp');
+      return this.feature.hasOwnProperty('time') ? this.feature.time !== null && this.feature.time.hasOwnProperty('timestamp') : false;
     },
     isTimeInterval: function () {
-      return this.feature.hasOwnProperty('time') && this.feature.time.hasOwnProperty('interval');
+      return this.feature.hasOwnProperty('time') ? this.feature.time !== null && this.feature.time.hasOwnProperty('interval') : false;
+    },
+    hasFeatureType: function () {
+      return this.feature.hasOwnProperty('featureType');
     }
 	},
 	methods: {
@@ -151,7 +157,7 @@ export default {
 			if ( this.featuregeoms ) {
 
         // TODO: we just return the first feature with id=='fid' for now
-				return this.featuregeoms.features.filter((feature) => feature.id === fid )[0];
+				return this.featuregeoms.features.filter((feature) => feature.id.toString() === fid )[0];
 
 			} else {
 

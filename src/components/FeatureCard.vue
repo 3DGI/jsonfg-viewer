@@ -28,7 +28,6 @@ export default {
 	},
 	props: {
 		featuregeoms: Object,
-		// feature: Object,
 		feature_id: String,
 		selected: {
 			type: Boolean,
@@ -93,7 +92,7 @@ export default {
 			if ( this.featuregeoms ) {
 
         // TODO: we just return the first feature with id=='fid' for now
-				return this.featuregeoms.features.filter((feature) => feature.id === fid )[0];
+				return this.featuregeoms.features.filter((feature) => feature.id.toString() === fid )[0];
 
 			} else {
 
