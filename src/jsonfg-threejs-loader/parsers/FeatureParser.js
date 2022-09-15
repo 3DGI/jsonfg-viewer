@@ -1,7 +1,7 @@
 import {
-	Face3,
 	BufferGeometry,
-	BufferAttribute,
+	DoubleSide,
+	Float32BufferAttribute,
 	Mesh,
 	MeshLambertMaterial,
 	Vector3 } from 'three';
@@ -41,7 +41,7 @@ export class FeatureParser {
 
 	parse( data, scene ) {
 
-		for ( const feature in data.features ) {
+		for ( const feature of data.features ) {
 			
 			const geom = this.parseFeature( feature );
 
@@ -49,6 +49,7 @@ export class FeatureParser {
 
 			const material = new MeshLambertMaterial();
 			material.color.setHex( this.objectColors[ objectType ] );
+			// material.side = DoubleSide;
 
 			const mesh = new Mesh( geom, material );
 			mesh.name = feature.id;
@@ -63,14 +64,18 @@ export class FeatureParser {
 
 	parseFeature( feature ) {
 
+
 		if ( ! ( feature.place ) ) {
 
+			console.log("Feature has no place")
+			console.log(feature)
 		  return;
 
 		}
 
 		const geom = new BufferGeometry();
-		let vertices = [];
+		const positions = [];
+		const normals = [];
 
 		//each geometrytype must be handled different
 		const geomType = feature.place.type;
@@ -78,13 +83,15 @@ export class FeatureParser {
 		// TODO: check all possible geomTypes
 		// for now I just looked at: https://github.com/3DGI/cityjson2jsonfg/blob/4f7e537417226aee1f575d7587abbd2ff2339885/cityjson2jsonfg/convert.py#L136
 
+
+
 		if ( geomType == "Polyhedron" ) {
 
 			const shells = feature.place.coordinates;
 
 			for ( let i = 0; i < shells.length; i ++ ) {
 
-				this.parseShell( geom, shells[ i ], vertices, json );
+				this.parseShell( geom, shells[ i ], positions, normals );
 
 			}
 
@@ -92,7 +99,7 @@ export class FeatureParser {
 
 			const surfaces = feature.place.coordinates;
 
-			this.parseShell( geom, surfaces, vertices, json );
+			this.parseShell( geom, surfaces, positions, normals );
 
 		} else if ( geomType == "MultiSolid" || geomType == "CompositeSolid" ) {
 
@@ -102,13 +109,23 @@ export class FeatureParser {
 
 				for ( let j = 0; j < solids[ i ].length; j ++ ) {
 
-					this.parseShell( geom, solids[ i ][ j ], vertices, json );
+					this.parseShell( geom, solids[ i ][ j ], positions, normals );
 
 				}
 
 			}
 
 		}
+
+		// function disposeArray() {
+
+		// 	this.array = null;
+
+		// }
+
+		// geom.setAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ).onUpload( disposeArray ) );
+		geom.setAttribute( 'position', new Float32BufferAttribute( positions.flat(), 3 ) );
+		geom.setAttribute( 'normal', new Float32BufferAttribute( normals.flat(), 3 ) );
 
 
 		if ( this.matrix !== null ) {
@@ -123,10 +140,7 @@ export class FeatureParser {
 
 	}
 
-	parseShell( geom, boundaries, vertices, json ) {
-
-		const positions = [];
-		const normals = [];
+	parseShell( geom, boundaries, positions, normals ) {
 
 		// Contains the boundary but with the right verticeId
 		for ( let i = 0; i < boundaries.length; i ++ ) {
@@ -147,14 +161,16 @@ export class FeatureParser {
 
 			}
 			
+			
 			// get normal of these points
 			const normal = this.get_normal_newell( vertices );
+			const normal_ = normal.toArray();
 
 			// see if we need to triangulate
 			if ( vertices.length == 3 ) {
 
 				positions.push( ...vertices );
-				normals.push(normal, normal, normal);
+				normals.push(normal_, normal_, normal_);
 
 			} else if ( vertices.length > 3 ) {		
 
@@ -163,8 +179,8 @@ export class FeatureParser {
 				for ( let k = 0; k < vertices.length; k ++ ) {
 
 					const re = this.to_2d( vertices[ k ], normal );
-					pv.push( re.x );
-					pv.push( re.y );
+					pv.push( re[0] );
+					pv.push( re[1] );
 
 				}
 
@@ -177,7 +193,7 @@ export class FeatureParser {
 					positions.push( vertices[ tr[ k ] ] )
 					positions.push( vertices[ tr[ k + 1 ] ] )
 					positions.push( vertices[ tr[ k + 2 ] ] )
-					normals.push(normal, normal, normal);
+					normals.push(normal_, normal_, normal_);
 
 				}
 
@@ -185,52 +201,7 @@ export class FeatureParser {
 
 		}
 
-		function disposeArray() {
-
-			this.array = null;
-
-		}
-
-		geom.setAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ).onUpload( disposeArray ) );
-		geometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ).onUpload( disposeArray ) );
-
 	}
-
-	// extractLocalIndices( geom, boundary, indices, json ) {
-
-	// 	let new_boundary = [];
-
-	// 	for ( let j = 0; j < boundary.length; j ++ ) {
-
-	// 		//the original index from the json file
-	// 		const index = boundary[ j ];
-
-	// 		//if this index is already there
-	// 		if ( indices.includes( index ) ) {
-
-	// 			const vertPos = indices.indexOf( index );
-	// 			new_boundary.push( vertPos );
-
-	// 		} else {
-
-	// 			// Add vertex to geometry
-	// 			const point = new Vector3(
-	// 				json.vertices[ index ][ 0 ],
-	// 				json.vertices[ index ][ 1 ],
-	// 				json.vertices[ index ][ 2 ]
-	// 			);
-	// 			geom.vertices.push( point );
-
-	// 			new_boundary.push( indices.length );
-	// 			indices.push( index );
-
-	// 		}
-
-	// 	}
-
-	// 	return new_boundary;
-
-	// }
 
 	get_normal_newell( points ) {
 
@@ -247,9 +218,9 @@ export class FeatureParser {
 
 			}
 
-		  n[ 0 ] = n[ 0 ] + ( ( points[ i ].y - points[ nex ].y ) * ( points[ i ].z + points[ nex ].z ) );
-		  n[ 1 ] = n[ 1 ] + ( ( points[ i ].z - points[ nex ].z ) * ( points[ i ].x + points[ nex ].x ) );
-		  n[ 2 ] = n[ 2 ] + ( ( points[ i ].x - points[ nex ].x ) * ( points[ i ].y + points[ nex ].y ) );
+		  n[ 0 ] = n[ 0 ] + ( ( points[ i ][1] - points[ nex ][1] ) * ( points[ i ][2] + points[ nex ][2] ) );
+		  n[ 1 ] = n[ 1 ] + ( ( points[ i ][2] - points[ nex ][2] ) * ( points[ i ][0] + points[ nex ][0] ) );
+		  n[ 2 ] = n[ 2 ] + ( ( points[ i ][0] - points[ nex ][0] ) * ( points[ i ][1] + points[ nex ][1] ) );
 
 		}
 
@@ -260,7 +231,7 @@ export class FeatureParser {
 
 	to_2d( p, n ) {
 
-		p = new Vector3( p.x, p.y, p.z );
+		p = new Vector3( p[ 0 ], p[ 1 ], p[ 2 ] );
 		const x3 = new Vector3( 1.1, 1.1, 1.1 );
 		if ( x3.distanceTo( n ) < 0.01 ) {
 
@@ -280,9 +251,7 @@ export class FeatureParser {
 		let x = p.dot( x3 );
 		let y = p.dot( y3 );
 
-		const re = { x: x, y: y };
-
-		return re;
+		return [ x, y ];
 
 	}
 

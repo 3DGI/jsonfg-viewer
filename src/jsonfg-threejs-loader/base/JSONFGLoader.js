@@ -34,9 +34,9 @@ export class JSONFGLoader {
 			// const new_data = Object.assign( {}, data );
 			// new_data.vertices = this.applyTransform( data );
 
-			if ( this.matrix == null && data.features.length > 1 ) {
+			if ( this.matrix == null && data.features.length > 0 ) {
 
-				this.computeMatrix( data.features[1] );
+				this.computeMatrix( data.features[0] );
 
 			}
 
@@ -73,14 +73,14 @@ export class JSONFGLoader {
 	/**
 	 * Computes a matrix that transforms the dataset close to the origin.
 	 *
-	 * @param {Object} feature A feature to compute the matric for
+	 * @param {Object} feature A feature to compute the matrix for
 	 */
 	computeMatrix( feature, scale = false ) {
 
 		const normGeom = new BufferGeometry();
 
 		//get the first face of the first polyhedron
-		const vertices = new Float32Array( feature.place.coordinates[0][0].map( v => [ v[ 0 ], v[ 1 ], v[ 2 ] ] ).flat() );
+		const vertices = new Float32Array( feature.place.coordinates[0][0].flat().flat() );
 		normGeom.setAttribute( 'position', new BufferAttribute( vertices, 3 ) );
 
 		normGeom.computeBoundingBox();

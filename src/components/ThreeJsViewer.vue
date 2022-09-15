@@ -288,7 +288,6 @@ export default {
 				loader.load( featureCollection );
 
 				this.scene.add( loader.scene );
-				console.log(this.scene);
 
 			}
 
@@ -306,14 +305,15 @@ export default {
 
 			this.scene.traverse( c => {
 
-				if ( c.material ) {
+				// TODO: fix highlighting
+				// if ( c.material ) {
 
-					c.material.uniforms.selectSurface.value = this.highlightSelectedSurface;
-					c.material.uniforms.highlightedObjId.value = idx;
-					c.material.uniforms.highlightedGeomId.value = this.selectedGeomIdx;
-					c.material.uniforms.highlightedBoundId.value = this.selectedBoundaryIdx;
+				// 	c.material.uniforms.selectSurface.value = this.highlightSelectedSurface;
+				// 	c.material.uniforms.highlightedObjId.value = idx;
+				// 	c.material.uniforms.highlightedGeomId.value = this.selectedGeomIdx;
+				// 	c.material.uniforms.highlightedBoundId.value = this.selectedBoundaryIdx;
 
-				}
+				// }
 
 			} );
 
