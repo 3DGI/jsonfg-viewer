@@ -654,7 +654,7 @@ export default {
 
 			var text = JSON.stringify( this.featuregeoms );
 
-			this.download( "citymodel.json", text );
+			this.download( "file.fg.json", text );
 
 		}
 	}
