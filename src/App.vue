@@ -176,7 +176,7 @@
     </div>
     <nav
       class="navbar navbar-dark"
-      :class="[ file_loaded ? 'bg-dark' : 'bg-white' ]"
+      :class="[ data_loaded ? 'bg-dark' : 'bg-white' ]"
     >
       <div class="d-flex justify-content-end align-items-center col-auto p-0">
         <div
@@ -197,7 +197,7 @@
         <button
           type="button"
           class="btn"
-          :class="[ file_loaded ? 'btn-outline-light' : 'btn-outline-dark' ]"
+          :class="[ data_loaded ? 'btn-outline-light' : 'btn-outline-dark' ]"
           data-toggle="modal"
           data-target="#helpModal"
         >
@@ -206,7 +206,7 @@
       </div>
     </nav>
     <div
-      v-if="file_loaded"
+      v-if="data_loaded"
       id="main_content"
     >
       <div class="container-fluid h-100">
@@ -231,7 +231,7 @@
                     placeholder="Search for IDs, object type or attributes..."
                   >
                   <div
-                    v-show="file_loaded"
+                    v-show="data_loaded"
                     class="d-flex justify-content-end col-auto p-0"
                   >
                     <button
@@ -356,6 +356,27 @@
                 >Choose file or drop it here...</label>
               </div>
             </div>
+            <h2>Connect to an API</h2>
+            <p>OGC Features API serving JSON-FG data:</p>
+            <div class="input-group mb-3">
+              <div class="custom-file">
+                <input
+                  id="inputGroupUrl01"
+                  placeholder="Paste the API URL here..."
+                  ref="apiUrl"
+                  type="url"
+                  class="form-control"
+                >
+              </div>
+              <div class="input-group-append">
+                <button
+                  class="btn btn-outline-secondary"
+                  type="button"
+                  id="button-addon2"
+                  @click="selectedUrl"
+                >Go</button>
+              </div>
+            </div>
             <div
               v-show="error_message"
               class="alert alert-danger"
@@ -385,6 +406,7 @@ import $ from 'jquery';
 import _ from 'lodash';
 import FeatureCollectionTree from "./components/FeatureCollectionTree";
 import FeatureCard from "./components/FeatureCard";
+import axios from 'axios';
 
 export default {
 	name: 'App',
@@ -397,7 +419,7 @@ export default {
 	data: function () {
 
 		return {
-			file_loaded: false,
+			data_loaded: false,
 			search_term: "",
 			featuregeoms: {},
 			selected_fid: null,
@@ -447,7 +469,7 @@ export default {
 		};
 
 	},
-	computed: {
+  computed: {
 		activeFeatureCollection: function () {
 
       return this.featuregeoms;
@@ -455,7 +477,7 @@ export default {
 		},
 		logoUrl: function () {
 
-			if ( this.file_loaded ) {
+			if ( this.data_loaded ) {
 
 				return "logoWhite.svg";
 
@@ -527,7 +549,8 @@ export default {
 
 			this.featuregeoms = {};
 			this.search_term = "";
-			this.file_loaded = false;
+      this.selected_fid = null;
+			this.data_loaded = false;
 
 		},
 		matches( feature ) {
@@ -535,20 +558,6 @@ export default {
 			var regex = RegExp( this.search_term, "i" );
 			var f_json = JSON.stringify( feature );
       return regex.test(f_json);
-
-		},
-		validateJSONFG(fg) {
-
-      //TODO: not sure how else can we validate that it is a json-fg file?
-			if ( fg.type != "FeatureCollection" ) {
-
-				this.error_message = "This file is not a FeatureCollection!";
-
-				return false;
-
-			}
-
-			return true;
 
 		},
 		selectedFile() {
@@ -570,7 +579,7 @@ export default {
 
 				const fg = JSON.parse( evt.target.result );
 
-				if ( this.validateJSONFG( fg ) === false ) {
+				if ( this.validateJsonFgFile( fg ) === false ) {
 
 					this.loading = false;
 					return;
@@ -579,13 +588,55 @@ export default {
 
 				this.featuregeoms = fg;
 
-				this.file_loaded = true;
+				this.data_loaded = true;
 
 				this.loading = false;
 
 			};
 
 		},
+    selectedUrl() {
+      this.loading = true;
+      // "https://d123.ldproxy.net/montreal/collections/buildings/items?f=jsonfg&crs=http://www.opengis.net/def/crs/EPSG/0/6661"
+      axios
+        .get(this.$refs.apiUrl.value)
+        .then(response => {
+          if (this.validateJsonFgApi(response.headers) === false) {
+              this.loading = false;
+              return;
+          }
+          this.featuregeoms = response.data;
+        })
+        .catch(error => {
+          console.log(error);
+          this.errored = true;
+        })
+        .finally(() => {
+          this.data_loaded = true;
+          this.loading = false;
+        })
+    },
+		validateJsonFgFile(fg) {
+
+      //TODO: not sure how else can we validate that it is a json-fg file?
+			if ( fg.type != "FeatureCollection" ) {
+
+				this.error_message = "This file is not a FeatureCollection!";
+
+				return false;
+
+			}
+
+			return true;
+
+		},
+    validateJsonFgApi(headers){
+      if (headers["content-type"] !== "application/vnd.ogc.fg+json" && headers["content-type"] !== "application/fg+json") {
+        this.error_message = "This API does not provide JSON-FG data!";
+        return false;
+      }
+      return true;
+    },
 		download( filename, text ) {
 
 			var element = document.createElement( 'a' );
@@ -604,7 +655,7 @@ export default {
 
 			var text = JSON.stringify( this.featuregeoms );
 
-			this.download( "citymodel.json", text );
+			this.download( "file.fg.json", text );
 
 		}
 	}
