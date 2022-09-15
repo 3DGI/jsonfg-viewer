@@ -230,6 +230,36 @@
                     class="form-control col mb-2 shadow-sm"
                     placeholder="Search for IDs, object type or attributes..."
                   >
+                  <label for="inputGroupPaginateLimit">Paginate</label>
+                  <div
+                    v-show="data_loaded"
+                    class="d-flex justify-content-start col-auto p-0"
+                  >
+                    <div class="input-group">
+                      <input type="text" class="form-control"
+                             id="inputGroupPaginateLimit"
+                             ref="paginateLimit"
+                             placeholder="Limit"
+                             aria-label="Paginate with limit"
+                             aria-describedby="button-addon4"
+                             @input="setPaginateLimit()"
+                      >
+                      <div class="input-group-append" id="button-addon4">
+                        <button
+                          class="btn btn-outline-secondary"
+                          type="button"
+                          @click="paginatePrev"
+                        >Prev
+                        </button>
+                        <button
+                          class="btn btn-outline-secondary"
+                          type="button"
+                          @click="paginateNext"
+                        >Next
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                   <div
                     v-show="data_loaded"
                     class="d-flex justify-content-end col-auto p-0"
@@ -423,6 +453,7 @@ export default {
 			search_term: "",
 			featuregeoms: {},
 			selected_fid: null,
+      paginate_limit: null,
 			selectedGeometryId: - 1,
 			selectedBoundaryId: - 1,
 			loading: false,
@@ -596,10 +627,13 @@ export default {
 
 		},
     selectedUrl() {
+      this.requestFromUrl(this.$refs.apiUrl.value)
+    },
+    requestFromUrl(url) {
       this.loading = true;
       // "https://d123.ldproxy.net/montreal/collections/buildings/items?f=jsonfg&crs=http://www.opengis.net/def/crs/EPSG/0/6661"
       axios
-        .get(this.$refs.apiUrl.value)
+        .get(url)
         .then(response => {
           if (this.validateJsonFgApi(response.headers) === false) {
               this.loading = false;
@@ -657,7 +691,36 @@ export default {
 
 			this.download( "file.fg.json", text );
 
-		}
+		},
+    paginatePrev() {
+      const limit = this.paginate_limit;
+      const link = this.featuregeoms.links.filter((link) => link.rel === "prev");
+      if (link.length !== 0) {
+        this.reset();
+        this.requestFromUrl(this.paginatedUrl(link[0].href, limit));
+      }
+    },
+    paginateNext() {
+      const limit = this.paginate_limit;
+      const link = this.featuregeoms.links.filter((link) => link.rel === "next");
+      if (link.length !== 0) {
+        this.reset();
+        this.requestFromUrl(this.paginatedUrl(link[0].href, limit));
+      }
+    },
+    paginatedUrl(url, limit) {
+      const base = url.split("?")[0];
+      const params = new URLSearchParams(url.split("?")[1]);
+      if (limit === null || limit === "") {
+        if (params.has("limit")) params.delete("limit");
+      } else {
+        params.set("limit", limit);
+      }
+      return base + "?" + params.toString();
+    },
+    setPaginateLimit() {
+      this.paginate_limit = this.$refs.paginateLimit.value;
+    }
 	}
 };
 </script>
