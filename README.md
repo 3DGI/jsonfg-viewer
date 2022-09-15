@@ -30,9 +30,7 @@ yarn run build
 
 # Dependencies
 
-*ninja* uses [cityjson-vue-components](https://github.com/cityjson/cityjson-vue-components) and [cityjson-threejs-loader](https://github.com/cityjson/cityjson-threejs-loader) to handle things.
-
-Other frameworks used:
+Frameworks used:
 - [three.js](https://threejs.org/)
 - [Vue.js](https://vuejs.org/)
 - [Bootstrap](https://getbootstrap.com/)

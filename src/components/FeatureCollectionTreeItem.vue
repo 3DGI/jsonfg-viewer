@@ -33,9 +33,6 @@
             select_this() {
                 this.$emit("object_clicked", this.feature_id);
             },
-            getFeature(fid) {
-                return this.featuregeoms.features[fid];
-            }
         }
     }
 </script>

@@ -263,18 +263,13 @@
               class="col-auto m-2"
               style="position: absolute; z-index: 1"
             >
-              <CityObjectCard
+              <FeatureCard
                 v-if="existsSelected"
-                :citymodel="activeFeatureCollection"
-                :cityobject="activeFeatureCollection.CityObjects[selected_fid]"
-                :cityobject_id="selected_fid"
-                :geometry-id="selectedGeometryId"
-                :boundary-id="selectedBoundaryId"
+                :featuregeoms="activeFeatureCollection"
+                :feature_id="selected_fid"
                 :expanded="0"
-                :editable="true"
-                @input="activeFeatureCollection.CityObjects[selected_fid] = $event"
-                @close="selected_fid = null"
-              ></CityObjectCard>
+                @close="selected_fid = null">
+              </FeatureCard>
             </div>
             <ThreeJsViewer
               ref="viewer"
@@ -296,30 +291,6 @@
             <div
               style="position: absolute; z-index: 1; bottom: 0px; left: 0px"
             >
-              <div class="custom-control custom-switch ml-1">
-                <input
-                  id="surfaceSwitch"
-                  v-model="highlightSurface"
-                  type="checkbox"
-                  class="custom-control-input"
-                >
-                <label
-                  class="custom-control-label"
-                  for="surfaceSwitch"
-                >Select surface</label>
-              </div>
-              <div class="custom-control custom-switch ml-1">
-                <input
-                  id="semanticsSwitch"
-                  v-model="showSemantics"
-                  type="checkbox"
-                  class="custom-control-input"
-                >
-                <label
-                  class="custom-control-label"
-                  for="semanticsSwitch"
-                >Semantics</label>
-              </div>
               <div
                 class="btn-group ml-1 mb-1 bg-white"
                 role="group"
@@ -327,19 +298,17 @@
               >
                 <button
                   type="button"
-                  :class="['btn', activeLoD == - 1 ? 'btn-primary' : 'btn-outline-primary']"
-                  @click="activeLoD = - 1"
+                  :class="['btn', toggleGeometryPlace === 0 ? 'btn-primary' : 'btn-outline-primary']"
+                  @click="toggleGeometryPlace = 0"
                 >
-                  All
+                  geometry
                 </button>
                 <button
-                  v-for="( lod, idx ) in availableLoDs"
-                  :key="lod"
                   type="button"
-                  :class="['btn', activeLoD == idx ? 'btn-primary' : 'btn-outline-primary']"
-                  @click="activeLoD = idx"
+                  :class="['btn', toggleGeometryPlace === 1 ? 'btn-primary' : 'btn-outline-primary']"
+                  @click="toggleGeometryPlace = 1"
                 >
-                  LoD{{ lod }}
+                  place
                 </button>
               </div>
             </div>
@@ -415,11 +384,13 @@ import ThreeJsViewer from './components/ThreeJsViewer.vue';
 import $ from 'jquery';
 import _ from 'lodash';
 import FeatureCollectionTree from "./components/FeatureCollectionTree";
+import FeatureCard from "./components/FeatureCard";
 
 export default {
 	name: 'App',
 	components: {
     FeatureCollectionTree,
+    FeatureCard,
 		ColorEditor,
 		NinjaSidebar,
     ThreeJsViewer
@@ -472,8 +443,7 @@ export default {
 			selectionColor: 0xffc107,
 			showSemantics: false,
 			highlightSurface: false,
-			availableLoDs: [],
-			activeLoD: - 1,
+			toggleGeometryPlace: 0, // 0: geometry, 1: place
 			cameraLight: false
 		};
 

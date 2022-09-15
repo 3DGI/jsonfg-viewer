@@ -3,10 +3,10 @@
     <FeatureCollectionTreeItem
             v-for="feature in featurecollection"
             v-show="matches(feature)"
-            :key="feature.id"
+            :key="feature.id.toString()"
             :featuregeoms="featuregeoms"
             :item="feature"
-            :feature_id="feature.id"
+            :feature_id="feature.id.toString()"
             :selected_fid="selected_fid"
             @object_clicked="$emit('object_clicked', $event)"
     />
