@@ -4,9 +4,9 @@ import {
 	BufferGeometry,
 	Group,
 	Matrix4 } from 'three';
-import { CityObjectParser } from '../parsers/CityObjectParser.js';
+import { FeatureParser } from '../parsers/FeatureParser.js';
 
-export class CityJSONLoader {
+export class JSONFGLoader {
 
 	constructor( parser ) {
 
@@ -14,7 +14,7 @@ export class CityJSONLoader {
 		this.scene = new Group();
 		this.matrix = null;
 		this.boundingBox = null;
-		this.parser = parser || new CityObjectParser();
+		this.parser = parser || new FeatureParser();
 
 	}
 

@@ -7,7 +7,7 @@ import {
 	Vector3 } from 'three';
 import earcut from 'earcut';
 
-export class CityObjectParser {
+export class FeatureParser {
 
 	constructor() {
 
@@ -125,51 +125,44 @@ export class CityObjectParser {
 
 	parseShell( geom, boundaries, vertices, json ) {
 
+		const positions = [];
+		const normals = [];
+
 		// Contains the boundary but with the right verticeId
 		for ( let i = 0; i < boundaries.length; i ++ ) {
 
-			let boundary = [];
+			let vertices = [];
 			let holes = [];
 
 			for ( let j = 0; j < boundaries[ i ].length; j ++ ) {
 
-				if ( boundary.length > 0 ) {
+				if ( vertices.length > 0 ) {
 
-					holes.push( boundary.length );
+					holes.push( vertices.length );
 
 				}
 
-				const new_boundary = this.extractLocalIndices( geom, boundaries[ i ][ j ], vertices, json );
-				boundary.push( ...new_boundary );
+				// const new_boundary = this.extractLocalIndices( geom, boundaries[ i ][ j ], vertices, json );
+				vertices.push( ...boundaries[ i ][ j ] );
 
 			}
+			
+			// get normal of these points
+			const normal = this.get_normal_newell( vertices );
 
-			if ( boundary.length == 3 ) {
+			// see if we need to triangulate
+			if ( vertices.length == 3 ) {
 
-				geom.faces.push( new Face3( boundary[ 0 ], boundary[ 1 ], boundary[ 2 ] ) );
+				positions.push( ...vertices );
+				normals.push(normal, normal, normal);
 
-			} else if ( boundary.length > 3 ) {
-
-				//create list of points
-				let pList = [];
-				for ( let k = 0; k < boundary.length; k ++ ) {
-
-					pList.push( {
-						x: json.vertices[ vertices[ boundary[ k ] ] ][ 0 ],
-						y: json.vertices[ vertices[ boundary[ k ] ] ][ 1 ],
-						z: json.vertices[ vertices[ boundary[ k ] ] ][ 2 ]
-					} );
-
-				}
-
-				//get normal of these points
-				const normal = this.get_normal_newell( pList );
+			} else if ( vertices.length > 3 ) {		
 
 				//convert to 2d (for triangulation)
 				let pv = [];
-				for ( let k = 0; k < pList.length; k ++ ) {
+				for ( let k = 0; k < vertices.length; k ++ ) {
 
-					const re = this.to_2d( pList[ k ], normal );
+					const re = this.to_2d( vertices[ k ], normal );
 					pv.push( re.x );
 					pv.push( re.y );
 
@@ -181,13 +174,10 @@ export class CityObjectParser {
 				//create faces based on triangulation
 				for ( let k = 0; k < tr.length; k += 3 ) {
 
-					geom.faces.push(
-						new Face3(
-							boundary[ tr[ k ] ],
-							boundary[ tr[ k + 1 ] ],
-							boundary[ tr[ k + 2 ] ]
-						)
-					);
+					positions.push( vertices[ tr[ k ] ] )
+					positions.push( vertices[ tr[ k + 1 ] ] )
+					positions.push( vertices[ tr[ k + 2 ] ] )
+					normals.push(normal, normal, normal);
 
 				}
 
@@ -195,43 +185,52 @@ export class CityObjectParser {
 
 		}
 
-	}
+		function disposeArray() {
 
-	extractLocalIndices( geom, boundary, indices, json ) {
-
-		let new_boundary = [];
-
-		for ( let j = 0; j < boundary.length; j ++ ) {
-
-			//the original index from the json file
-			const index = boundary[ j ];
-
-			//if this index is already there
-			if ( indices.includes( index ) ) {
-
-				const vertPos = indices.indexOf( index );
-				new_boundary.push( vertPos );
-
-			} else {
-
-				// Add vertex to geometry
-				const point = new Vector3(
-					json.vertices[ index ][ 0 ],
-					json.vertices[ index ][ 1 ],
-					json.vertices[ index ][ 2 ]
-				);
-				geom.vertices.push( point );
-
-				new_boundary.push( indices.length );
-				indices.push( index );
-
-			}
+			this.array = null;
 
 		}
 
-		return new_boundary;
+		geom.setAttribute( 'position', new THREE.Float32BufferAttribute( positions, 3 ).onUpload( disposeArray ) );
+		geometry.setAttribute( 'normal', new THREE.Float32BufferAttribute( normals, 3 ).onUpload( disposeArray ) );
 
 	}
+
+	// extractLocalIndices( geom, boundary, indices, json ) {
+
+	// 	let new_boundary = [];
+
+	// 	for ( let j = 0; j < boundary.length; j ++ ) {
+
+	// 		//the original index from the json file
+	// 		const index = boundary[ j ];
+
+	// 		//if this index is already there
+	// 		if ( indices.includes( index ) ) {
+
+	// 			const vertPos = indices.indexOf( index );
+	// 			new_boundary.push( vertPos );
+
+	// 		} else {
+
+	// 			// Add vertex to geometry
+	// 			const point = new Vector3(
+	// 				json.vertices[ index ][ 0 ],
+	// 				json.vertices[ index ][ 1 ],
+	// 				json.vertices[ index ][ 2 ]
+	// 			);
+	// 			geom.vertices.push( point );
+
+	// 			new_boundary.push( indices.length );
+	// 			indices.push( index );
+
+	// 		}
+
+	// 	}
+
+	// 	return new_boundary;
+
+	// }
 
 	get_normal_newell( points ) {
 

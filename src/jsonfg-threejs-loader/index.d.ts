@@ -1,4 +1,4 @@
-import { CityJSONLoader } from './base/CityJSONLoader';
+import { JSONFGLoader } from './base/JSONFGLoader';
 // import { CityJSONWorkerParser } from './parsers/CityJSONWorkerParser';
 // import { ChunkParser } from './parsers/helpers/ChunkParser';
 
@@ -15,7 +15,7 @@ import { CityJSONLoader } from './base/CityJSONLoader';
 // import { TextureManager } from './helpers/TextureManager';
 
 export {
-    CityJSONLoader,
+    JSONFGLoader,
     // CityJSONWorkerParser,
     // ChunkParser,
 

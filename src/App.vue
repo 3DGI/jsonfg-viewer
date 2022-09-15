@@ -273,7 +273,7 @@
             </div>
             <ThreeJsViewer
               ref="viewer"
-              :citymodel="activeFeatureCollection"
+              :featureCollection="activeFeatureCollection"
               :selected-objid="selected_fid"
               :selected-geom-idx="selectedGeometryId"
               :selected-boundary-idx="selectedBoundaryId"
@@ -282,7 +282,6 @@
               :background-color="background_color"
               :selection-color="selectionColor"
               :show-semantics="showSemantics"
-              :active-lod="activeLoD"
               :camera-spotlight="cameraLight"
               :highlight-selected-surface="highlightSurface"
               @object_clicked="move_to_object($event)"

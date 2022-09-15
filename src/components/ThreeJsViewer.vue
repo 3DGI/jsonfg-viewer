@@ -8,13 +8,13 @@
 <script>
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { CityJSONLoader, CityJSONWorkerParser } from '../jsonfg-threejs-loader';
+import { JSONFGLoader } from '../jsonfg-threejs-loader';
 import { sRGBEncoding } from 'three';
 
 export default {
 	name: 'ThreeJsViewer',
 	props: {
-		citymodel: {
+		featureCollection: {
 			type: Object,
 			default: function () {
 
@@ -152,12 +152,12 @@ export default {
 			this.updateScene();
 
 		},
-		citymodel: {
-			handler: function ( newCitymodel ) {
+		featureCollection: {
+			handler: function ( newfeatureCollection ) {
 
 				this.clearScene();
 
-				this.loadCitymodel( newCitymodel );
+				this.loadFeatureCollection( newfeatureCollection );
 
 				this.updateScene();
 
@@ -245,7 +245,7 @@ export default {
 
 		this.initScene();
 
-		this.loadCitymodel( this.citymodel );
+		this.loadFeatureCollection( this.featureCollection );
 
 		this.updateScene();
 
@@ -255,11 +255,11 @@ export default {
 
 	},
 	methods: {
-		loadCitymodel( citymodel ) {
+		loadFeatureCollection( featureCollection ) {
 
 			this.$emit( 'rendering', true );
 
-			if ( Object.keys( citymodel ).length > 0 ) {
+			if ( featureCollection.features.length > 0 ) {
 
 				// this.parser = new CityJSONWorkerParser();
 				// this.parser.chunkSize = 2000;
@@ -284,10 +284,11 @@ export default {
 				// };
 
 				// const loader = new CityJSONLoader( this.parser );
-				const loader = new CityJSONLoader( );
-				loader.load( citymodel );
+				const loader = new JSONFGLoader( );
+				loader.load( featureCollection );
 
 				this.scene.add( loader.scene );
+				console.log(this.scene);
 
 			}
 
@@ -440,8 +441,8 @@ export default {
 				const geomId = object.geometry.getAttribute( 'geometryid' ).getX( face.a );
 				const boundId = object.geometry.getAttribute( 'boundaryid' ).getX( face.a );
 
-				const objectId = Object.keys( this.citymodel.CityObjects )[ idx ];
-				this.$emit( 'object_clicked', [ objectId, geomId, boundId ] );
+				// const objectId = Object.keys( this.featureCollection.features )[ idx ];
+				this.$emit( 'object_clicked', [ idx, geomId, boundId ] );
 
 			}
 
