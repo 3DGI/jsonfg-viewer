@@ -549,6 +549,7 @@ export default {
 
 			this.featuregeoms = {};
 			this.search_term = "";
+      this.selected_fid = null;
 			this.data_loaded = false;
 
 		},
