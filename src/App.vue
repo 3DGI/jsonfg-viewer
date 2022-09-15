@@ -403,8 +403,8 @@
                   class="btn btn-outline-secondary"
                   type="button"
                   id="button-addon2"
-                  @click="selectedUrl"
-                >Go</button>
+                  @click="setApiUrl"
+                >Load</button>
               </div>
             </div>
             <div
@@ -421,6 +421,12 @@
               >
                 <span aria-hidden="true">&times;</span>
               </button>
+            </div>
+            <h3 v-if="api_url">Collections</h3>
+            <div
+              v-if="api_url">
+              <p v-for="collection in this.api_collections"
+              ><a href="#" @click="requestFromUrl(getApiCollectionItemsUrl(collection))">{{ collection.title }}</a></p>
             </div>
           </main>
         </div>
@@ -454,6 +460,8 @@ export default {
 			featuregeoms: {},
 			selected_fid: null,
       paginate_limit: null,
+      api_url: null,
+      api_collections: null,
 			selectedGeometryId: - 1,
 			selectedBoundaryId: - 1,
 			loading: false,
@@ -546,6 +554,20 @@ export default {
 		}
 	},
 	watch: {
+    api_url: function() {
+      axios
+        .get(this.api_url + "/collections")
+        .then(response => {
+            this.api_collections = response.data.collections;
+        })
+        .catch(error => {
+          console.log(error);
+          this.errored = true;
+        })
+        .finally(() => {
+          this.loading = false;
+        })
+    },
 		selected_fid: function () {
 
 			if ( this.selected_fid != null ) {
@@ -582,6 +604,7 @@ export default {
 			this.search_term = "";
       this.selected_fid = null;
 			this.data_loaded = false;
+      this.api_url = null;
 
 		},
 		matches( feature ) {
@@ -626,8 +649,30 @@ export default {
 			};
 
 		},
-    selectedUrl() {
-      this.requestFromUrl(this.$refs.apiUrl.value)
+    setApiUrl() {
+      if (this.$refs.apiUrl.value === null || this.$refs.apiUrl.value === "") {
+          this.error_message = "Please enter a valid URL";
+          this.loading = false;
+          return;
+      }
+      const _u = this.$refs.apiUrl.value.trim();
+      const coll_idx = _u.search("/collections");
+      if (coll_idx < 0) {
+          if (_u.slice(-1) === "/") {
+              this.api_url = _u.substring(0, _u.length - 1);
+          } else {
+              this.api_url = _u;
+          }
+      } else {
+          this.api_url = _u.substring(0, coll_idx);
+      }
+    },
+    getApiCollectionItemsUrl(collection) {
+      const c = collection.links.filter((link) => link.rel === 'items' && (link.type === 'application/vnd.ogc.fg+json' || link.type === 'application/fg+json'))
+      if (c.length === 0) {
+        this.error_message = "Collection is not available in JSON-FG"
+      }
+      return c[0].href;
     },
     requestFromUrl(url) {
       this.loading = true;
