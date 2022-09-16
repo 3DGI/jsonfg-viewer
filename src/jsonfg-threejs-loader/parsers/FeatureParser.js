@@ -13,8 +13,8 @@ export class FeatureParser {
 	constructor() {
 
 		this.matrix = null;
-		this.epsg = "4326"
-		proj4.defs(defs);
+		this.crs = "4326"
+		proj4.defs("EPSG:7415", 'COMPOUNDCRS["Amersfoort / RD New + NAP height",PROJCRS["Amersfoort / RD New",BASEGEOGCRS["Amersfoort",DATUM["Amersfoort",ELLIPSOID["Bessel 1841",6377397.155,299.1528128,LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",7004]],ID["EPSG",6289]],ID["EPSG",4289]],CONVERSION["RD New",METHOD["Oblique Stereographic",ID["EPSG",9809]],PARAMETER["Latitude of natural origin",52.1561605555558,ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9102]],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",5.38763888888917,ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9102]],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",0.9999079,SCALEUNIT["unity",1,ID["EPSG",9201]],ID["EPSG",8805]],PARAMETER["False easting",155000,LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",8806]],PARAMETER["False northing",463000,LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",8807]],ID["EPSG",19914]],CS[Cartesian,2,ID["EPSG",4499]],AXIS["Easting (X)",east],AXIS["Northing (Y)",north],LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",28992]],VERTCRS["NAP height",VDATUM["Normaal Amsterdams Peil",ID["EPSG",5109]],CS[vertical,1,ID["EPSG",6499]],AXIS["Gravity-related height (H)",up],LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",5709]],ID["EPSG",7415]]');
 
 		this.objectColors = {
 			"Building": 0x7497df,
@@ -46,19 +46,16 @@ export class FeatureParser {
 
 		if (data.coordRefSys) {
 			if (data.coordRefSys.startsWith("https://www.opengis.net/def/crs/EPSG/0/")) {
-				this.epsg = data.coordRefSys.split("/").at(-1);
+				this.crs = 'EPSG:' + data.coordRefSys.split("/").at(-1);
 			} else {
 				console.error("Unsupported coordRefSys string");
 			}
 		}
 		console.log(this.crs)
 
-		fetch('https://www.opengis.net/def/crs/EPSG/0/'+this.epsg+'/export?format=wkt')
-		.then((response) => console.log(response.json()))
-	  .then((data) => console.log(data));
-
-
-		
+		// fetch('https://www.opengis.net/def/crs/EPSG/0/'+this.epsg+'/export?format=wkt')
+		// .then((response) => console.log(response.json()))
+	  // .then((data) => console.log(data));
 
 		for ( const feature of data.features ) {
 			
@@ -72,12 +69,12 @@ export class FeatureParser {
 
 
 		if ( feature.place ) {
-			console.log("place detected");
-			console.log(feature.place);
+			// console.log("place detected");
+			// console.log(feature.place);
 			
 
 			const geom = this.parseGeometry( feature.place, this.crs, this.crs );
-			console.log(geom);
+			// console.log(geom);
 			
 			const objectType = feature.featureType;
 
@@ -95,11 +92,11 @@ export class FeatureParser {
 		} 
 
 		if ( feature.geometry ) {
-			console.log("geometry detected");
-			console.log(feature.geometry);
+			// console.log("geometry detected");
+			// console.log(feature.geometry);
 
 			const geom = this.parseGeometry( feature.geometry, "WGS84", this.crs );
-			console.log(geom);
+			// console.log(geom);
 
 			const objectType = feature.featureType;
 
@@ -132,7 +129,7 @@ export class FeatureParser {
 	parseGeometry( jsonfgGeometry, fromCRS, toCRS ) {
 
 		const geom = new BufferGeometry();
-		const positions = [];
+		let positions = [];
 		const normals = [];
 
 		//each geometrytype must be handled different
@@ -176,13 +173,15 @@ export class FeatureParser {
 		}
 
 		// reproject
-		if ( ! ( fromCRS === toCRS ) ) {
-			console.log(positions)
-			console.log(defs)
-			console.log(proj4)
-			positions = positions.map( p => proj4(fromCRS, toCRS, p) );
-			console.log(positions)
-		}
+		// if ( ! ( fromCRS === toCRS ) ) {
+		// 	console.log(fromCRS)
+		// 	console.log(toCRS)
+		// 	console.log(proj4)
+		// 	console.log(positions)
+		// 	proj4.defs("EPSG:7415", 'COMPOUNDCRS["Amersfoort / RD New + NAP height",PROJCRS["Amersfoort / RD New",BASEGEOGCRS["Amersfoort",DATUM["Amersfoort",ELLIPSOID["Bessel 1841",6377397.155,299.1528128,LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",7004]],ID["EPSG",6289]],ID["EPSG",4289]],CONVERSION["RD New",METHOD["Oblique Stereographic",ID["EPSG",9809]],PARAMETER["Latitude of natural origin",52.1561605555558,ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9102]],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",5.38763888888917,ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9102]],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",0.9999079,SCALEUNIT["unity",1,ID["EPSG",9201]],ID["EPSG",8805]],PARAMETER["False easting",155000,LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",8806]],PARAMETER["False northing",463000,LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",8807]],ID["EPSG",19914]],CS[Cartesian,2,ID["EPSG",4499]],AXIS["Easting (X)",east],AXIS["Northing (Y)",north],LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",28992]],VERTCRS["NAP height",VDATUM["Normaal Amsterdams Peil",ID["EPSG",5109]],CS[vertical,1,ID["EPSG",6499]],AXIS["Gravity-related height (H)",up],LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",5709]],ID["EPSG",7415]]');
+		// 	positions = positions.map( p => proj4(fromCRS, toCRS, p) );
+		// 	console.log(positions)
+		// }
 
 		// function disposeArray() {
 
