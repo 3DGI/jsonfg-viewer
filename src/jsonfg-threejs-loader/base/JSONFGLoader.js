@@ -31,7 +31,8 @@ export class JSONFGLoader {
 			// We shallow clone the object to avoid modifying the original
 			// objects vertices
 			// TODO: implement this for json-fg
-			// const new_data = Object.assign( {}, data );
+			const new_data = Object.assign( {}, data );
+
 			// new_data.vertices = this.applyTransform( data );
 
 			if ( this.matrix == null && data.features.length > 0 ) {
@@ -49,6 +50,7 @@ export class JSONFGLoader {
 
 	// applyTransform( data ) {
 
+	// 	// apply CRS transform
 	// 	if ( data[ "transform" ] != undefined ) {
 
 	// 		const t = data.transform.translate;

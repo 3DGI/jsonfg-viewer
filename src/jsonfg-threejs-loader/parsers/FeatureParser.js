@@ -5,12 +5,16 @@ import {
 	MeshLambertMaterial,
 	Vector3 } from 'three';
 import earcut from 'earcut';
+import proj4 from 'proj4';
+const defs = require("proj4js-definitions");
 
 export class FeatureParser {
 
 	constructor() {
 
 		this.matrix = null;
+		this.epsg = "4326"
+		proj4.defs(defs);
 
 		this.objectColors = {
 			"Building": 0x7497df,
@@ -40,44 +44,99 @@ export class FeatureParser {
 
 	parse( data, scene ) {
 
+		if (data.coordRefSys) {
+			if (data.coordRefSys.startsWith("https://www.opengis.net/def/crs/EPSG/0/")) {
+				this.epsg = data.coordRefSys.split("/").at(-1);
+			} else {
+				console.error("Unsupported coordRefSys string");
+			}
+		}
+		console.log(this.crs)
+
+		fetch('https://www.opengis.net/def/crs/EPSG/0/'+this.epsg+'/export?format=wkt')
+		.then((response) => console.log(response.json()))
+	  .then((data) => console.log(data));
+
+
+		
+
 		for ( const feature of data.features ) {
 			
-			const geom = this.parseFeature( feature );
+			const geom = this.parseFeature( feature, scene );
+
+		}
+
+	}
+
+	parseFeature( feature, scene ) {
+
+
+		if ( feature.place ) {
+			console.log("place detected");
+			console.log(feature.place);
+			
+
+			const geom = this.parseGeometry( feature.place, this.crs, this.crs );
+			console.log(geom);
+			
+			const objectType = feature.featureType;
+
+			const material = new MeshLambertMaterial();
+			material.color.setHex( this.objectColors[ objectType ] );
+			// material.side = DoubleSide;
+	
+			const mesh = new Mesh( geom, material );
+			mesh.name = feature.id;
+			mesh.castShadow = true;
+			mesh.receiveShadow = true;
+	
+			scene.add( mesh );
+			
+		} 
+
+		if ( feature.geometry ) {
+			console.log("geometry detected");
+			console.log(feature.geometry);
+
+			const geom = this.parseGeometry( feature.geometry, "WGS84", this.crs );
+			console.log(geom);
 
 			const objectType = feature.featureType;
 
 			const material = new MeshLambertMaterial();
 			material.color.setHex( this.objectColors[ objectType ] );
 			// material.side = DoubleSide;
-
+	
 			const mesh = new Mesh( geom, material );
 			mesh.name = feature.id;
 			mesh.castShadow = true;
 			mesh.receiveShadow = true;
-
+	
 			scene.add( mesh );
+			
+		} 
+		
+		
+		// else {
 
-		}
+		// 	console.log("Feature has no place")
+		// 	console.log(feature)
+		//   return;
+
+		// }
+
+
 
 	}
 
-	parseFeature( feature ) {
-
-
-		if ( ! ( feature.place ) ) {
-
-			console.log("Feature has no place")
-			console.log(feature)
-		  return;
-
-		}
+	parseGeometry( jsonfgGeometry, fromCRS, toCRS ) {
 
 		const geom = new BufferGeometry();
 		const positions = [];
 		const normals = [];
 
 		//each geometrytype must be handled different
-		const geomType = feature.place.type;
+		const geomType = jsonfgGeometry.type;
 
 		// TODO: check all possible geomTypes
 		// for now I just looked at: https://github.com/3DGI/cityjson2jsonfg/blob/4f7e537417226aee1f575d7587abbd2ff2339885/cityjson2jsonfg/convert.py#L136
@@ -86,7 +145,7 @@ export class FeatureParser {
 
 		if ( geomType == "Polyhedron" ) {
 
-			const shells = feature.place.coordinates;
+			const shells = jsonfgGeometry.coordinates;
 
 			for ( let i = 0; i < shells.length; i ++ ) {
 
@@ -96,13 +155,13 @@ export class FeatureParser {
 
 		} else if ( geomType == "MultiPolygon" || geomType == "CompositeSurface" ) {
 
-			const surfaces = feature.place.coordinates;
+			const surfaces = jsonfgGeometry.coordinates;
 
 			this.parseShell( geom, surfaces, positions, normals );
 
 		} else if ( geomType == "MultiSolid" || geomType == "CompositeSolid" ) {
 
-			const solids = feature.place.coordinates;
+			const solids = jsonfgGeometry.coordinates;
 
 			for ( let i = 0; i < solids.length; i ++ ) {
 
@@ -114,6 +173,15 @@ export class FeatureParser {
 
 			}
 
+		}
+
+		// reproject
+		if ( ! ( fromCRS === toCRS ) ) {
+			console.log(positions)
+			console.log(defs)
+			console.log(proj4)
+			positions = positions.map( p => proj4(fromCRS, toCRS, p) );
+			console.log(positions)
 		}
 
 		// function disposeArray() {
