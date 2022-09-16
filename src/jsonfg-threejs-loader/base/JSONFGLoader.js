@@ -37,7 +37,7 @@ export class JSONFGLoader {
 
 			if ( this.matrix == null && data.features.length > 0 ) {
 
-				this.computeMatrix( data.features[0] );
+				this.computeMatrix( data.features );
 
 			}
 
@@ -75,14 +75,40 @@ export class JSONFGLoader {
 	/**
 	 * Computes a matrix that transforms the dataset close to the origin.
 	 *
-	 * @param {Object} feature A feature to compute the matrix for
+	 * @param {Array} features An array of features to compute the matrix for
 	 */
-	computeMatrix( feature, scale = false ) {
+	computeMatrix( features, scale = false ) {
 
 		const normGeom = new BufferGeometry();
 
-		//get the first face of the first polyhedron
-		const vertices = new Float32Array( feature.place.coordinates[0][0].flat().flat() );
+		//get the first vertex of the first face of the polyhedrons
+		// If you want to get the complete first face instead, use feature.place.coordinates[ 0 ][ 0 ].flat().flat()
+		const faces = [];
+		for ( const feature of features ) {
+
+			if ( feature.hasOwnProperty( 'place' ) ) {
+
+				if ( feature.place !== null ) {
+
+					// TODO: GeometryCollection / CustomGeometry, MultiPrism
+					if ( feature.place.type == "MultiPolyhedron" ) faces.push( feature.place.coordinates[ 0 ][ 0 ][ 0 ][ 0 ][ 0 ] );
+					else if ( feature.place.type == "Polyhedron" ) faces.push( feature.place.coordinates[ 0 ][ 0 ][ 0 ][ 0 ] );
+					else if ( feature.place.type == "MultiPolygon" ) faces.push( feature.place.coordinates[ 0 ][ 0 ][ 0 ] );
+					else if ( feature.place.type == "Polygon" || feature.place.type == "MultiLineString" ) faces.push( feature.place.coordinates[ 0 ][ 0 ] );
+					else if ( feature.place.type == "LineString" || feature.place.type == "MultiPoint" ) faces.push( feature.place.coordinates[ 0 ] );
+					else if ( feature.place.type == "Point" ) faces.push( feature.place.coordinates );
+					else if ( feature.place.type == "Prism" ) {
+						if ( feature.place.base.type == "Polygon" ) faces.push( feature.place.coordinates[ 0 ][ 0 ] );
+						else if ( feature.place.base.type == "LineString" ) faces.push( feature.place.coordinates[ 0 ] );
+						else if ( feature.place.base.type == "Point" ) faces.push( feature.place.coordinates );
+					}
+				}
+
+			}
+
+		}
+
+		const vertices = new Float32Array( faces.flat() );
 		normGeom.setAttribute( 'position', new BufferAttribute( vertices, 3 ) );
 
 		normGeom.computeBoundingBox();
