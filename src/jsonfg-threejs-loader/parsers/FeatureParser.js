@@ -1,6 +1,5 @@
 import {
 	BufferGeometry,
-	DoubleSide,
 	Float32BufferAttribute,
 	Mesh,
 	MeshLambertMaterial,

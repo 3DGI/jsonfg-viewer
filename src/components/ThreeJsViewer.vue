@@ -288,6 +288,14 @@ export default {
 				loader.load( featureCollection );
 
 				this.scene.add( loader.scene );
+				this.parser = loader.parser;
+
+				this.refreshColors();
+
+				this.updateScene();
+
+				// this.$emit( 'chunkLoaded' );
+				this.$emit( 'rendering', false );
 
 			}
 
@@ -335,26 +343,27 @@ export default {
 
 							const col = new THREE.Color();
 							col.setHex( '0x' + this.objectColors[ objtype ].toString( 16 ) );
-							mesh.material.uniforms.objectColors.value[ idx ] = col;
+							mesh.material.color = col;
+							// mesh.material.uniforms.objectColors.value[ idx ] = col;
 
 						}
 
 					}
 
-					for ( const surface in scope.surfaceColors ) {
+					// for ( const surface in scope.surfaceColors ) {
 
-						const idx = Object.keys( scope.parser.surfaceColors ).indexOf( surface );
-						if ( idx > - 1 ) {
+					// 	const idx = Object.keys( scope.parser.surfaceColors ).indexOf( surface );
+					// 	if ( idx > - 1 ) {
 
-							const col = new THREE.Color();
-							col.setHex( '0x' + scope.surfaceColors[ surface ].toString( 16 ) );
-							mesh.material.uniforms.surfaceColors.value[ idx ] = col;
+					// 		const col = new THREE.Color();
+					// 		col.setHex( '0x' + scope.surfaceColors[ surface ].toString( 16 ) );
+					// 		mesh.material.uniforms.surfaceColors.value[ idx ] = col;
 
-						}
+					// 	}
 
-					}
+					// }
 
-					mesh.material.uniforms.highlightColor.value.setHex( '0x' + scope.selectionColor.toString( 16 ) );
+					// mesh.material.uniforms.highlightColor.value.setHex( '0x' + scope.selectionColor.toString( 16 ) );
 
 				}
 
