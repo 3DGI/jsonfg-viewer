@@ -94,13 +94,13 @@ export class FeatureParser {
 
 			}
 
-		} else if ( geomType == "MultiPolygon" || geomType == "CompositeSurface" ) {
+		} else if ( geomType == "MultiPolygon" ) {
 
 			const surfaces = feature.place.coordinates;
 
 			this.parseShell( geom, surfaces, positions, normals );
 
-		} else if ( geomType == "MultiSolid" || geomType == "CompositeSolid" ) {
+		} else if ( geomType == "MultiPolyhedron" ) {
 
 			const solids = feature.place.coordinates;
 
@@ -114,7 +114,26 @@ export class FeatureParser {
 
 			}
 
+		} else if ( goemType == "Point" ) {
+			console.log( "Point 'place' type is not supported" );
+		} else if ( goemType == "MultiPoint" ) {
+			console.log( "MultiPoint 'place' type is not supported" );
+		} else if ( goemType == "LineString" ) {
+			console.log( "LineString 'place' type is not supported" );
+		} else if ( goemType == "MultiLineString" ) {
+			console.log( "MultiLineString 'place' type is not supported" );
+		} else if ( goemType == "Polygon" ) {
+			console.log( "Polygon 'place' type is not supported" );
+		} else if ( goemType == "Prism" ) {
+			console.log( "Prism 'place' type is not supported" );
+		} else if ( goemType == "MultiPrism" ) {
+			console.log( "MultiPrism 'place' type is not supported" );
+		} else if ( goemType == "CustomGeometry" ) {
+			console.log( "CustomGeometry 'place' type is not supported" );
+		} else {
+			console.log( "Invalid 'place' type ", geomType );
 		}
+
 
 		// function disposeArray() {
 

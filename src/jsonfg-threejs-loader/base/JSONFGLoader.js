@@ -86,7 +86,21 @@ export class JSONFGLoader {
 
 			if ( feature.hasOwnProperty( 'place' ) ) {
 
-				if ( feature.place !== null ) faces.push( feature.place.coordinates[ 0 ][ 0 ][ 0 ][ 0 ] );
+				if ( feature.place !== null ) {
+
+					// TODO: GeometryCollection / CustomGeometry, MultiPrism
+					if ( feature.place.type == "MultiPolyhedron" ) faces.push( feature.place.coordinates[ 0 ][ 0 ][ 0 ][ 0 ][ 0 ] );
+					else if ( feature.place.type == "Polyhedron" ) faces.push( feature.place.coordinates[ 0 ][ 0 ][ 0 ][ 0 ] );
+					else if ( feature.place.type == "MultiPolygon" ) faces.push( feature.place.coordinates[ 0 ][ 0 ][ 0 ] );
+					else if ( feature.place.type == "Polygon" || feature.place.type == "MultiLineString" ) faces.push( feature.place.coordinates[ 0 ][ 0 ] );
+					else if ( feature.place.type == "LineString" || feature.place.type == "MultiPoint" ) faces.push( feature.place.coordinates[ 0 ] );
+					else if ( feature.place.type == "Point" ) faces.push( feature.place.coordinates );
+					else if ( feature.place.type == "Prism" ) {
+						if ( feature.place.base.type == "Polygon" ) faces.push( feature.place.coordinates[ 0 ][ 0 ] );
+						else if ( feature.place.base.type == "LineString" ) faces.push( feature.place.coordinates[ 0 ] );
+						else if ( feature.place.base.type == "Point" ) faces.push( feature.place.coordinates );
+					}
+				}
 
 			}
 
