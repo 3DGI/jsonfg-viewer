@@ -1,5 +1,9 @@
 # JSON-FG viewer
 
+# Live demo
+
+[https://dev.3dgi.xyz/jsonfg-viewer](https://dev.3dgi.xyz/jsonfg-viewer)
+
 # Use
 
 ## Public version
