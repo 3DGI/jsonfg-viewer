@@ -301,24 +301,22 @@
                 @close="selected_fid = null">
               </FeatureCard>
             </div>
-<!--            <ThreeJsViewer-->
-<!--              ref="viewer"-->
-<!--              :citymodel="activeFeatureCollection"-->
-<!--              :selected-objid="selected_objid"-->
-<!--              :selected-geom-idx="selectedGeometryId"-->
-<!--              :selected-boundary-idx="selectedBoundaryId"-->
-<!--              :object-colors="object_colors"-->
-<!--              :surface-colors="surface_colors"-->
-<!--              :background-color="background_color"-->
-<!--              :selection-color="selectionColor"-->
-<!--              :show-semantics="showSemantics"-->
-<!--              :active-lod="activeLoD"-->
-<!--              :camera-spotlight="cameraLight"-->
-<!--              :highlight-selected-surface="highlightSurface"-->
-<!--              @object_clicked="move_to_object($event)"-->
-<!--              @rendering="loading = $event"-->
-<!--              @chunkLoaded="availableLoDs = $refs.viewer.getLods()"-->
-<!--            ></ThreeJsViewer>-->
+            <ThreeJsViewer
+              ref="viewer"
+              :featureCollection="activeFeatureCollection"
+              :selected-objid="selected_fid"
+              :selected-geom-idx="selectedGeometryId"
+              :selected-boundary-idx="selectedBoundaryId"
+              :object-colors="object_colors"
+              :surface-colors="surface_colors"
+              :background-color="background_color"
+              :selection-color="selectionColor"
+              :show-semantics="showSemantics"
+              :camera-spotlight="cameraLight"
+              :highlight-selected-surface="highlightSurface"
+              @object_clicked="move_to_object($event)"
+              @rendering="loading = $event"
+            ></ThreeJsViewer>
             <div
               style="position: absolute; z-index: 1; bottom: 0px; left: 0px"
             >
@@ -438,6 +436,7 @@
 <script>
 import ColorEditor from './components/ColorEditor.vue';
 import NinjaSidebar from './components/NinjaSidebar.vue';
+import ThreeJsViewer from './components/ThreeJsViewer.vue';
 import $ from 'jquery';
 import _ from 'lodash';
 import FeatureCollectionTree from "./components/FeatureCollectionTree";
@@ -451,6 +450,7 @@ export default {
     FeatureCard,
 		ColorEditor,
 		NinjaSidebar,
+    ThreeJsViewer
 	},
 	data: function () {
 
@@ -501,10 +501,10 @@ export default {
 			},
 			background_color: 0xd9eefc,
 			selectionColor: 0xffc107,
-			showSemantics: true,
+			showSemantics: false,
 			highlightSurface: false,
 			toggleGeometryPlace: 0, // 0: geometry, 1: place
-			cameraLight: false
+			cameraLight: true
 		};
 
 	},
