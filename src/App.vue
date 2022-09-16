@@ -672,7 +672,7 @@ export default {
       if (c.length === 0) {
         this.error_message = "Collection is not available in JSON-FG"
       }
-      return c[0].href;
+      return c[0].href + "&crs=http://www.opengis.net/def/crs/EPSG/0/6661";
     },
     requestFromUrl(url) {
       this.loading = true;
