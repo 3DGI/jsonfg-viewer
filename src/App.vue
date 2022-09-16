@@ -496,7 +496,7 @@ export default {
 			showSemantics: false,
 			highlightSurface: false,
 			toggleGeometryPlace: 0, // 0: geometry, 1: place
-			cameraLight: false
+			cameraLight: true
 		};
 
 	},

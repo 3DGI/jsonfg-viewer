@@ -89,10 +89,11 @@ export class JSONFGLoader {
 
 		normGeom.boundingBox.getCenter( centre );
 		centre.setZ( 0 );
-		// const radius = normGeom.boundingSphere.radius;
+		normGeom.computeBoundingSphere();
+		const radius = normGeom.boundingSphere.radius;
 
 		// const s = scale ? radius === 0 ? 1 : 1.0 / radius : 1;
-		const s = 1;
+		const s = radius === 0 ? 1 : 0.25 / radius;
 
 		const matrix = new Matrix4();
 		matrix.set(
