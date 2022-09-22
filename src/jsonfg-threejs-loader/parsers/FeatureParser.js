@@ -6,16 +6,18 @@ import {
 	Vector3 } from 'three';
 import earcut from 'earcut';
 import proj4 from 'proj4';
-const defs = require("proj4js-definitions");
+const crs_defs = require("proj4js-definitions");
 
 export class FeatureParser {
 
 	constructor() {
 
 		this.matrix = null;
-		this.crs = "4326"
-		proj4.defs("EPSG:7415", 'COMPOUNDCRS["Amersfoort / RD New + NAP height",PROJCRS["Amersfoort / RD New",BASEGEOGCRS["Amersfoort",DATUM["Amersfoort",ELLIPSOID["Bessel 1841",6377397.155,299.1528128,LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",7004]],ID["EPSG",6289]],ID["EPSG",4289]],CONVERSION["RD New",METHOD["Oblique Stereographic",ID["EPSG",9809]],PARAMETER["Latitude of natural origin",52.1561605555558,ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9102]],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",5.38763888888917,ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9102]],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",0.9999079,SCALEUNIT["unity",1,ID["EPSG",9201]],ID["EPSG",8805]],PARAMETER["False easting",155000,LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",8806]],PARAMETER["False northing",463000,LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",8807]],ID["EPSG",19914]],CS[Cartesian,2,ID["EPSG",4499]],AXIS["Easting (X)",east],AXIS["Northing (Y)",north],LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",28992]],VERTCRS["NAP height",VDATUM["Normaal Amsterdams Peil",ID["EPSG",5109]],CS[vertical,1,ID["EPSG",6499]],AXIS["Gravity-related height (H)",up],LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",5709]],ID["EPSG",7415]]');
-
+		this.crs = "CRS84"
+		proj4.defs(crs_defs)
+		proj4.defs("EPSG:7415","+proj=sterea +lat_0=52.1561605555556 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +vunits=m +no_defs +type=crs");
+		proj4.defs("EPSG:4979","+proj=longlat +datum=WGS84 +no_defs +type=crs");
+		
 		this.objectColors = {
 			"Building": 0x7497df,
 			"BuildingPart": 0x7497df,
@@ -45,10 +47,10 @@ export class FeatureParser {
 	parse( data, scene ) {
 
 		if (data.coordRefSys) {
-			if (data.coordRefSys.startsWith("https://www.opengis.net/def/crs/EPSG/0/")) {
+			if (data.coordRefSys.startsWith("https://www.opengis.net/def/crs/EPSG/0/") || data.coordRefSys.startsWith("http://www.opengis.net/def/crs/EPSG/0/")) {
 				this.crs = 'EPSG:' + data.coordRefSys.split("/").at(-1);
 			} else {
-				console.error("Unsupported coordRefSys string");
+				console.error("Unsupported coordRefSys string ");
 			}
 		}
 		console.log(this.crs)
@@ -69,9 +71,6 @@ export class FeatureParser {
 
 
 		if ( feature.place ) {
-			// console.log("place detected");
-			// console.log(feature.place);
-			
 
 			const geom = this.parseGeometry( feature.place, this.crs, this.crs );
 			// console.log(geom);
@@ -92,8 +91,6 @@ export class FeatureParser {
 		} 
 
 		if ( feature.geometry ) {
-			// console.log("geometry detected");
-			// console.log(feature.geometry);
 
 			const geom = this.parseGeometry( feature.geometry, "WGS84", this.crs );
 			// console.log(geom);
@@ -191,15 +188,11 @@ export class FeatureParser {
 		}
 
 		// reproject
-		// if ( ! ( fromCRS === toCRS ) ) {
-		// 	console.log(fromCRS)
-		// 	console.log(toCRS)
-		// 	console.log(proj4)
-		// 	console.log(positions)
-		// 	proj4.defs("EPSG:7415", 'COMPOUNDCRS["Amersfoort / RD New + NAP height",PROJCRS["Amersfoort / RD New",BASEGEOGCRS["Amersfoort",DATUM["Amersfoort",ELLIPSOID["Bessel 1841",6377397.155,299.1528128,LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",7004]],ID["EPSG",6289]],ID["EPSG",4289]],CONVERSION["RD New",METHOD["Oblique Stereographic",ID["EPSG",9809]],PARAMETER["Latitude of natural origin",52.1561605555558,ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9102]],ID["EPSG",8801]],PARAMETER["Longitude of natural origin",5.38763888888917,ANGLEUNIT["degree",0.0174532925199433,ID["EPSG",9102]],ID["EPSG",8802]],PARAMETER["Scale factor at natural origin",0.9999079,SCALEUNIT["unity",1,ID["EPSG",9201]],ID["EPSG",8805]],PARAMETER["False easting",155000,LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",8806]],PARAMETER["False northing",463000,LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",8807]],ID["EPSG",19914]],CS[Cartesian,2,ID["EPSG",4499]],AXIS["Easting (X)",east],AXIS["Northing (Y)",north],LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",28992]],VERTCRS["NAP height",VDATUM["Normaal Amsterdams Peil",ID["EPSG",5109]],CS[vertical,1,ID["EPSG",6499]],AXIS["Gravity-related height (H)",up],LENGTHUNIT["metre",1,ID["EPSG",9001]],ID["EPSG",5709]],ID["EPSG",7415]]');
-		// 	positions = positions.map( p => proj4(fromCRS, toCRS, p) );
-		// 	console.log(positions)
-		// }
+		console.log(positions);
+		if ( ! ( fromCRS === toCRS ) ) {
+			positions = positions.map( p => proj4(fromCRS, toCRS, p) );
+			console.log(positions);
+		}
 
 		// function disposeArray() {
 
