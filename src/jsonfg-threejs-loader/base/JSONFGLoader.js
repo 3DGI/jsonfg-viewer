@@ -4,25 +4,25 @@ import {
 	BufferGeometry,
 	Group,
 	Matrix4 } from 'three';
-import { FeatureParser } from '../parsers/FeatureParser.js';
+// import { FeatureParser } from '../parsers/FeatureParser.js';
 
 export class JSONFGLoader {
 
 	constructor( parser ) {
 
-		this.texturesPath = '';
+		// this.texturesPath = '';
 		this.scene = new Group();
 		this.matrix = null;
 		this.boundingBox = null;
-		this.parser = parser || new FeatureParser();
+		this.parser = parser;// || new FeatureParser();
 
 	}
 
-	setTexturesPath( path ) {
+	// setTexturesPath( path ) {
 
-		this.texturesPath = path;
+	// 	this.texturesPath = path;
 
-	}
+	// }
 
 	load( data ) {
 

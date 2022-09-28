@@ -9,6 +9,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { JSONFGLoader } from '../jsonfg-threejs-loader';
+import { CityJSONWorkerParser } from '../jsonfg-threejs-loader';
 import { sRGBEncoding } from 'three';
 
 export default {
@@ -26,10 +27,14 @@ export default {
 			type: String,
 			default: null
 		},
-		selectedGeomIdx: {
+		selectedObjidx: {
 			type: Number,
-			default: - 1,
+			default: null
 		},
+		// selectedGeomIdx: {
+		// 	type: Number,
+		// 	default: - 1,
+		// },
 		selectedBoundaryIdx: {
 			type: Number,
 			default: - 1
@@ -90,11 +95,11 @@ export default {
 		},
 		backgroundColor: {
 			type: Number,
-			default: 0xd9eefc
+			default: 0x000000
 		},
 		showSemantics: {
 			type: Boolean,
-			default: true
+			default: false
 		},
 		activeLod: {
 			type: Number,
@@ -169,11 +174,11 @@ export default {
 			this.updateScene();
 
 		},
-		selectedGeomIdx: function () {
+		// selectedGeomIdx: function () {
 
-			this.updateScene();
+		// 	this.updateScene();
 
-		},
+		// },
 		selectedBoundaryIdx: function () {
 
 			this.updateScene();
@@ -215,7 +220,8 @@ export default {
 
 				if ( c.material ) {
 
-					c.material.uniforms.showLod.value = lodIdx;
+					c.material.showLod = lodIdx;
+					// c.material.uniforms.showLod.value = lodIdx;
 
 				}
 
@@ -261,41 +267,44 @@ export default {
 
 			if ( featureCollection.features.length > 0 ) {
 
-				// this.parser = new CityJSONWorkerParser();
-				// this.parser.chunkSize = 2000;
+				this.parser = new CityJSONWorkerParser();
+				this.parser.chunkSize = 2000;
 
-				// const scope = this;
-				// this.parser.onChunkLoad = () => {
+				const scope = this;
+				this.parser.onChunkLoad = () => {
 
-				// 	scope.lods = scope.parser.lods;
+					scope.lods = scope.parser.lods;
 
-				// 	if ( ! scope.parser.loading ) {
+					scope.refreshColors();
 
-				// 		scope.$emit( 'rendering', false );
+					scope.updateScene();
 
-				// 	}
+					scope.$emit( 'chunkLoaded' );
 
-				// 	scope.refreshColors();
+				};
+				this.parser.onComplete = () => {
 
-				// 	scope.updateScene();
+					if ( ! scope.parser.loading ) {
 
-				// 	scope.$emit( 'chunkLoaded' );
+						scope.$emit( 'rendering', false );
 
-				// };
+					}
+
+				};
 
 				// const loader = new CityJSONLoader( this.parser );
-				const loader = new JSONFGLoader( );
+				const loader = new JSONFGLoader( this.parser );
 				loader.load( featureCollection );
 
 				this.scene.add( loader.scene );
 				this.parser = loader.parser;
 
-				this.refreshColors();
+				// this.refreshColors();
 
-				this.updateScene();
+				// this.updateScene();
 
 				// this.$emit( 'chunkLoaded' );
-				this.$emit( 'rendering', false );
+				// this.$emit( 'rendering', false );
 
 			}
 
@@ -308,23 +317,19 @@ export default {
 
 			}
 
-			// const idx = Object.keys( this.citymodel.CityObjects ).indexOf( this.selectedObjid );
-			const idx = this.selectedObjid;
-
 			this.scene.traverse( c => {
 
 				// TODO: fix highlighting
-				// if ( c.material ) {
+				if ( c.material ) {
+					// c.material.uniforms.selectSurface.value = this.highlightSelectedSurface;
+					c.material.uniforms.highlightedObjId.value = this.selectedObjidx;
+					// c.material.uniforms.highlightedGeomId.value = this.selectedGeomIdx;
+					c.material.uniforms.highlightedBoundId.value = this.selectedBoundaryIdx;
 
-				// 	c.material.uniforms.selectSurface.value = this.highlightSelectedSurface;
-				// 	c.material.uniforms.highlightedObjId.value = idx;
-				// 	c.material.uniforms.highlightedGeomId.value = this.selectedGeomIdx;
-				// 	c.material.uniforms.highlightedBoundId.value = this.selectedBoundaryIdx;
-
-				// }
+				}
 
 			} );
-
+			
 			this.renderer.render( this.scene, this.camera );
 
 		},
@@ -363,7 +368,7 @@ export default {
 
 					// }
 
-					// mesh.material.uniforms.highlightColor.value.setHex( '0x' + scope.selectionColor.toString( 16 ) );
+					mesh.material.uniforms.highlightColor.value.setHex( '0x' + scope.selectionColor.toString( 16 ) );
 
 				}
 
@@ -447,11 +452,11 @@ export default {
 
 				const idx = objIds.getX( face.a );
 
-				const geomId = object.geometry.getAttribute( 'geometryid' ).getX( face.a );
+				// const geomId = object.geometry.getAttribute( 'geometryid' ).getX( face.a );
 				const boundId = object.geometry.getAttribute( 'boundaryid' ).getX( face.a );
 
 				// const objectId = Object.keys( this.featureCollection.features )[ idx ];
-				this.$emit( 'object_clicked', [ idx, geomId, boundId ] );
+				this.$emit( 'object_clicked', { feature_id: this.featureCollection.features[idx].id, feature_idx: idx, boundary_id: boundId } );
 
 			}
 
@@ -504,6 +509,7 @@ export default {
 
 			} );
 			this.controls.target.set( 0, 0, 0 );
+			// console.log(this.scene);
 
 		},
 		clearScene() {

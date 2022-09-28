@@ -16,6 +16,7 @@
         props: {
             item: Object,
             feature_id: String,
+            feature_idx: Number,
             selected_fid: String,
             featuregeoms: Object
         },
@@ -31,7 +32,7 @@
         },
         methods: {
             select_this() {
-                this.$emit("object_clicked", this.feature_id);
+                this.$emit("object_clicked", {feature_id: this.feature_id, feature_idx:this.feature_idx});
             },
         }
     }
