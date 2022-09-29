@@ -77,22 +77,6 @@ export default {
 
 			}
 		},
-		surfaceColors: {
-			type: Object,
-			default: function () {
-
-				return {
-					"GroundSurface": 0x999999,
-					"WallSurface": 0xffffff,
-					"RoofSurface": 0xff0000,
-					"TrafficArea": 0x6e6e6e,
-					"AuxiliaryTrafficArea": 0x2c8200,
-					"Window": 0x0059ff,
-					"Door": 0x640000
-				};
-
-			}
-		},
 		backgroundColor: {
 			type: Number,
 			default: 0x000000
@@ -134,15 +118,6 @@ export default {
 
 		},
 		objectColors: {
-			handler: function () {
-
-				this.refreshColors();
-				this.updateScene();
-
-			},
-			deep: true
-		},
-		surfaceColors: {
 			handler: function () {
 
 				this.refreshColors();
@@ -354,19 +329,6 @@ export default {
 						}
 
 					}
-
-					// for ( const surface in scope.surfaceColors ) {
-
-					// 	const idx = Object.keys( scope.parser.surfaceColors ).indexOf( surface );
-					// 	if ( idx > - 1 ) {
-
-					// 		const col = new THREE.Color();
-					// 		col.setHex( '0x' + scope.surfaceColors[ surface ].toString( 16 ) );
-					// 		mesh.material.uniforms.surfaceColors.value[ idx ] = col;
-
-					// 	}
-
-					// }
 
 					mesh.material.uniforms.highlightColor.value.setHex( '0x' + scope.selectionColor.toString( 16 ) );
 
