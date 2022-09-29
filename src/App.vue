@@ -598,7 +598,7 @@ export default {
 
 			if ( ids ) {
 				// `ids` is in the form of { feature_id: ..., feature_idx: ..., boundary_id: ... }
-				this.selected_fid = ids.feature_id;
+				this.selected_fid = ids.feature_id.toString();
 				this.selected_fidx = ids.feature_idx;
 				// this.selectedGeometryId = ids;
 				this.selectedBoundaryId = ids.boundary_id;
