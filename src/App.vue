@@ -324,21 +324,28 @@
               <div
                 class="btn-group ml-1 mb-1 bg-white"
                 role="group"
-                aria-label="Basic example"
+                aria-label="Geometry toggle"
               >
+                <button
+                  type="button"
+                  :class="['btn', toggleGeometryPlace === -1 ? 'btn-primary' : 'btn-outline-primary']"
+                  @click="toggleGeometryPlace = -1"
+                >
+                  All
+                </button>
                 <button
                   type="button"
                   :class="['btn', toggleGeometryPlace === 0 ? 'btn-primary' : 'btn-outline-primary']"
                   @click="toggleGeometryPlace = 0"
                 >
-                  geometry
+                  Only geometry
                 </button>
                 <button
                   type="button"
                   :class="['btn', toggleGeometryPlace === 1 ? 'btn-primary' : 'btn-outline-primary']"
                   @click="toggleGeometryPlace = 1"
                 >
-                  place
+                  Only place
                 </button>
               </div>
             </div>
@@ -505,7 +512,7 @@ export default {
 			selectionColor: 0xffc107,
 			showSemantics: false,
 			highlightSurface: false,
-			toggleGeometryPlace: 0, // 0: geometry, 1: place
+			toggleGeometryPlace: -1, // -1: both, 0: geometry, 1: place
 			cameraLight: true
 		};
 
