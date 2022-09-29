@@ -224,6 +224,11 @@
                       {{ Object.keys(activeFeatureCollection.features).length }} total
                     </span>
                   </h5>
+                  <h6>
+                    <span class="badge-pill badge-light">
+                      coordRefSys : {{ featuregeoms.coordRefSys }}
+                    </span>
+                  </h6>
                   <input
                     v-model="search_term"
                     type="search"
