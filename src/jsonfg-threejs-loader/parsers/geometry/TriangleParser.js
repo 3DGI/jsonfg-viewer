@@ -40,81 +40,35 @@ export class TriangleParser extends BaseParser {
 
 		const geometryType = geometry.type;
 
-		if ( geometryType == "MultiPolygon" ) {
+		if ( geometryType == "Polygon" ) {
+
+			const newGeometry = Object.assign( {}, geometry );
+
+			newGeometry.coordinates = [geometry.coordinates];
+
+		} else if ( geometryType == "MultiPolygon" ) {
 
 			return geometry;
 
-		}
-
-		if ( geometryType == "Polyhedron" ) {
+		} else if ( geometryType == "Polyhedron" ) {
 
 			const newGeometry = Object.assign( {}, geometry );
 
 			newGeometry.coordinates = geometry.coordinates.flat( 1 );
 
-			// if ( geometry.semantics ) {
-
-			// 	newGeometry.semantics.values = geometry.semantics.values.flat( 1 );
-
-			// }
-
-			// if ( geometry.material ) {
-
-			// 	for ( const theme in geometry.material ) {
-
-			// 		newGeometry.material[ theme ].values = geometry.material[ theme ].values.flat( 1 );
-
-			// 	}
-
-			// }
-
-			// if ( geometry.texture ) {
-
-			// 	for ( const theme in geometry.texture ) {
-
-			// 		newGeometry.texture[ theme ].values = geometry.texture[ theme ].values.flat( 1 );
-
-			// 	}
-
-			// }
-
 			return newGeometry;
 
-		}
-
-		if ( geometryType == "MultiPolyhedron" ) {
+		} else if ( geometryType == "MultiPolyhedron" ) {
 
 			const newGeometry = Object.assign( {}, geometry );
 
 			newGeometry.coordinates = geometry.coordinates.flat( 2 );
 
-			// if ( geometry.semantics ) {
-
-			// 	newGeometry.semantics.values = geometry.semantics.values.flat( 2 );
-
-			// }
-
-			// if ( geometry.material ) {
-
-			// 	for ( const theme in geometry.material ) {
-
-			// 		newGeometry.material[ theme ].values = geometry.material[ theme ].values.flat( 2 );
-
-			// 	}
-
-			// }
-
-			// if ( geometry.texture ) {
-
-			// 	for ( const theme in geometry.texture ) {
-
-			// 		newGeometry.texture[ theme ].values = geometry.texture[ theme ].values.flat( 2 );
-
-			// 	}
-
-			// }
-
 			return newGeometry;
+
+		} else {
+
+			console.error("Unsupport geometry type: %s", geometryType);
 
 		}
 
