@@ -4,48 +4,90 @@ import {
 	BufferGeometry,
 	Group,
 	Matrix4 } from 'three';
-import { FeatureParser } from '../parsers/FeatureParser.js';
+import proj4 from 'proj4';
+const defs = require("proj4js-definitions");
+// import { FeatureParser } from '../parsers/FeatureParser.js';
 
 export class JSONFGLoader {
 
 	constructor( parser ) {
 
-		this.texturesPath = '';
+		// this.texturesPath = '';
 		this.scene = new Group();
 		this.matrix = null;
 		this.boundingBox = null;
-		this.parser = parser || new FeatureParser();
+		this.parser = parser;// || new FeatureParser();
+
+		// Load proj4 defs
+		proj4.defs(defs);
+		proj4.defs("EPSG:7415","+proj=sterea +lat_0=52.1561605555556 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +vunits=m +no_defs +type=crs");
+		// let p = proj4("EPSG:4326", [
+		// 	4.364435966292724,
+		// 	52.00539642100053,
+		// 	0])
+		this.targetCRS = "EPSG:4326";
 
 	}
 
-	setTexturesPath( path ) {
+	// setTexturesPath( path ) {
 
-		this.texturesPath = path;
+	// 	this.texturesPath = path;
 
-	}
+	// }
 
 	load( data ) {
 
 		if ( typeof data === "object" ) {
 
-			// We shallow clone the object to avoid modifying the original
+			// We dee[] clone the object to avoid modifying the original
 			// objects vertices
-			// TODO: implement this for json-fg
-			const new_data = Object.assign( {}, data );
+			let new_data = JSON.parse(JSON.stringify(data));
 
-			// new_data.vertices = this.applyTransform( data );
+			this.reprojectData( new_data );
 
-			if ( this.matrix == null && data.features.length > 0 ) {
+			if ( this.matrix == null && new_data.features.length > 0 ) {
 
-				this.computeMatrix( data.features );
+				this.computeMatrix( new_data.features );
 
 			}
 
 			this.parser.matrix = this.matrix;
-			this.parser.parse( data, this.scene );
+			this.parser.parse( new_data, this.scene );
 
 		}
 
+	}
+
+	reprojectData( data ) {
+		if (data.coordRefSys) {
+			if (data.coordRefSys.includes("//www.opengis.net/def/crs/EPSG/0/")) {
+				this.targetCRS = 'EPSG:' + data.coordRefSys.split("/").at(-1);
+			} else {
+				console.error("Unsupported coordRefSys string");
+				try {
+					proj4(this.targetCRS);
+				} catch (error) {
+					console.error(error);
+				}
+			}
+		} else return;
+
+		if (this.targetCRS === 'EPSG:4326') return;
+
+		// let context = this;
+		const reprojectCoordinates = (coords) => coords.map(geom => {
+			if (typeof geom[0] === 'number') {
+				return proj4(this.targetCRS, geom);
+			} else
+				return reprojectCoordinates(geom);
+		});
+
+		// reproject
+		for ( const featureID in data.features ) {
+			let feature = data.features[featureID];
+			if(feature.geometry)
+				feature.geometry.coordinates = reprojectCoordinates(feature.geometry.coordinates);
+		}
 	}
 
 	// applyTransform( data ) {

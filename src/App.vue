@@ -224,6 +224,11 @@
                       {{ Object.keys(activeFeatureCollection.features).length }} total
                     </span>
                   </h5>
+                  <h6>
+                    <span class="badge-pill badge-light">
+                      coordRefSys : {{ featuregeoms.coordRefSys }}
+                    </span>
+                  </h6>
                   <input
                     v-model="search_term"
                     type="search"
@@ -233,7 +238,7 @@
                   <label for="inputGroupPaginateLimit">Paginate</label>
                   <div
                     v-show="data_loaded"
-                    class="d-flex justify-content-start col-auto p-0"
+                    class="d-flex justify-content-start col-auto p-0 mb-3"
                   >
                     <div class="input-group">
                       <input type="text" class="form-control"
@@ -283,7 +288,7 @@
                         :selected_fid="selected_fid"
                         :featuregeoms="activeFeatureCollection"
                         :matches="matches"
-                        @object_clicked="move_to_object([$event])"
+                        @object_clicked="move_to_object($event)"
                 ></FeatureCollectionTree>
               </div>
             </div>
@@ -304,8 +309,8 @@
             <ThreeJsViewer
               ref="viewer"
               :featureCollection="activeFeatureCollection"
-              :selected-objid="selected_fid"
-              :selected-geom-idx="selectedGeometryId"
+              :selectedObjid="selected_fid"
+              :selectedObjidx="selected_fidx"
               :selected-boundary-idx="selectedBoundaryId"
               :object-colors="object_colors"
               :surface-colors="surface_colors"
@@ -313,6 +318,7 @@
               :selection-color="selectionColor"
               :show-semantics="showSemantics"
               :camera-spotlight="cameraLight"
+              :activeLod="toggleGeometryPlace"
               :highlight-selected-surface="highlightSurface"
               @object_clicked="move_to_object($event)"
               @rendering="loading = $event"
@@ -323,21 +329,28 @@
               <div
                 class="btn-group ml-1 mb-1 bg-white"
                 role="group"
-                aria-label="Basic example"
+                aria-label="Geometry toggle"
               >
+                <button
+                  type="button"
+                  :class="['btn', toggleGeometryPlace === -1 ? 'btn-primary' : 'btn-outline-primary']"
+                  @click="toggleGeometryPlace = -1"
+                >
+                  All
+                </button>
                 <button
                   type="button"
                   :class="['btn', toggleGeometryPlace === 0 ? 'btn-primary' : 'btn-outline-primary']"
                   @click="toggleGeometryPlace = 0"
                 >
-                  geometry
+                  Only geometry
                 </button>
                 <button
                   type="button"
                   :class="['btn', toggleGeometryPlace === 1 ? 'btn-primary' : 'btn-outline-primary']"
                   @click="toggleGeometryPlace = 1"
                 >
-                  place
+                  Only place
                 </button>
               </div>
             </div>
@@ -459,10 +472,11 @@ export default {
 			search_term: "",
 			featuregeoms: {},
 			selected_fid: null,
+			selected_fidx: null,
       paginate_limit: null,
       api_url: null,
       api_collections: null,
-			selectedGeometryId: - 1,
+			// selectedGeometryId: - 1,
 			selectedBoundaryId: - 1,
 			loading: false,
 			error_message: null,
@@ -503,7 +517,7 @@ export default {
 			selectionColor: 0xffc107,
 			showSemantics: false,
 			highlightSurface: false,
-			toggleGeometryPlace: 0, // 0: geometry, 1: place
+			toggleGeometryPlace: -1, // -1: both, 0: geometry, 1: place
 			cameraLight: true
 		};
 
@@ -583,15 +597,16 @@ export default {
 		move_to_object( ids ) {
 
 			if ( ids ) {
-
-				// `ids` is in the form of [ objectId, geometryId, boudnaryId ]
-				this.selected_fid = ids[ 0 ];
-				// this.selectedGeometryId = ids[ 1 ];
-				// this.selectedBoundaryId = ids[ 2 ];
+				// `ids` is in the form of { feature_id: ..., feature_idx: ..., boundary_id: ... }
+				this.selected_fid = ids.feature_id.toString();
+				this.selected_fidx = ids.feature_idx;
+				// this.selectedGeometryId = ids;
+				this.selectedBoundaryId = ids.boundary_id;
 
 			} else {
 
 				this.selected_fid = null;
+				this.selected_fidx = null;
 				// this.selectedGeometryId = - 1;
 				// this.selectedBoundaryId = - 1;
 
@@ -603,6 +618,7 @@ export default {
 			this.featuregeoms = {};
 			this.search_term = "";
       this.selected_fid = null;
+      this.selected_fidx = null;
 			this.data_loaded = false;
       this.api_url = null;
 
