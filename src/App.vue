@@ -238,7 +238,7 @@
                   <label for="inputGroupPaginateLimit">Paginate</label>
                   <div
                     v-show="data_loaded"
-                    class="d-flex justify-content-start col-auto p-0"
+                    class="d-flex justify-content-start col-auto p-0 mb-3"
                   >
                     <div class="input-group">
                       <input type="text" class="form-control"
