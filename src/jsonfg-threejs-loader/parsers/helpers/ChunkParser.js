@@ -1,5 +1,5 @@
-import { LineParser } from '../geometry/LineParser.js';
-import { PointParser } from '../geometry/PointParser.js';
+// import { LineParser } from '../geometry/LineParser.js';
+// import { PointParser } from '../geometry/PointParser.js';
 import { TriangleParser } from '../geometry/TriangleParser.js';
 
 export class ChunkParser {

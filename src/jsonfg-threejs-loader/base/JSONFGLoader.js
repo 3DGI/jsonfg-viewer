@@ -6,7 +6,21 @@ import {
 	Matrix4 } from 'three';
 import proj4 from 'proj4';
 const defs = require("proj4js-definitions");
+// import defs  from "./defs.js";
+
 // import { FeatureParser } from '../parsers/FeatureParser.js';
+
+function utmzone_from_lon(lon_deg) {
+	//get utm-zone from longitude degrees
+	return parseInt(((lon_deg+180)/6)%60)+1;
+}
+
+function proj4_setdef(lon_deg) {
+	//get UTM projection definition from longitude
+	const utm_zone = utmzone_from_lon(lon_deg);
+	const zdef = `+proj=utm +zone=${utm_zone} +datum=WGS84 +units=m +no_defs`;
+	return zdef;
+}
 
 export class JSONFGLoader {
 
@@ -20,8 +34,9 @@ export class JSONFGLoader {
 
 		// Load proj4 defs
 		proj4.defs(defs);
+		proj4.defs("EPSG:6661","+proj=utm +zone=18 +ellps=GRS80 +units=m +vunits=m +no_defs +type=crs");
 		proj4.defs("EPSG:7415","+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.999908 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +towgs84=565.2369,50.0087,465.658,-0.406857330322398,0.350732676542563,-1.8703473836068,4.0812 +no_defs +no_defs");
-
+		proj4.defs("OGC:CRS84","+proj=longlat +datum=WGS84 +no_defs +type=crs");
 		this.targetCRS = "EPSG:4326";
 
 	}
@@ -56,34 +71,57 @@ export class JSONFGLoader {
 	}
 
 	reprojectData( data ) {
+		console.log(data.coordRefSys);
 		if (data.coordRefSys) {
 			if (data.coordRefSys.includes("//www.opengis.net/def/crs/EPSG/0/")) {
-				this.targetCRS = 'EPSG:' + data.coordRefSys.split("/").at(-1);
+				const epsgCode = data.coordRefSys.split("/").at(-1);
+				// const epsgCode = theCRS.match(/^[0-9]+$/);
+				this.targetCRS = 'EPSG:' + epsgCode;
+			} else if (data.coordRefSys.includes("//www.opengis.net/def/crs/OGC/0/")){
+				let theCRS = data.coordRefSys.split("/").at(-1);
+				if(theCRS==="CRS84h") theCRS="CRS84";
+				this.targetCRS = 'OGC:' + theCRS;
 			} else {
 				console.error("Unsupported coordRefSys string");
-				try {
-					proj4(this.targetCRS);
-				} catch (error) {
-					console.error(error);
-				}
+			}
+			try {
+				proj4(this.targetCRS);
+			} catch (error) {
+				console.error("Unknown CRS: " + error);
 			}
 		} else return;
-
-		if (this.targetCRS === 'EPSG:4326') return;
+		const coordRefSys = this.targetCRS;
+		console.log(proj4.defs)
+		if (proj4.defs(this.targetCRS).projName) {
+			if (proj4.defs(this.targetCRS).projName === "longlat") {
+				let longitude = null;
+				if (data.features[0].place)
+					longitude = data.features[0].place.coordinates.flat(5)[0]
+				else
+					longitude = data.features[0].geometry.coordinates.flat(5)[0]
+				const utmZone = utmzone_from_lon(longitude);
+				this.targetCRS = "AutoUTM Zone "+utmZone;
+				proj4.defs(this.targetCRS, proj4_setdef(longitude));
+			}
+		}
 
 		// let context = this;
-		const reprojectCoordinates = (coords) => coords.map(geom => {
+		const reprojectCoordinates = (fromCRS, coords) => coords.map(geom => {
 			if (typeof geom[0] === 'number') {
-				return proj4(this.targetCRS, geom);
+				return proj4(fromCRS, this.targetCRS, geom);
 			} else
-				return reprojectCoordinates(geom);
+				return reprojectCoordinates(fromCRS, geom);
 		});
 
 		// reproject
 		for ( const featureID in data.features ) {
 			let feature = data.features[featureID];
-			if(feature.geometry)
-				feature.geometry.coordinates = reprojectCoordinates(feature.geometry.coordinates);
+			if(feature.geometry) {
+				feature.geometry.coordinates = reprojectCoordinates("EPSG:4326",feature.geometry.coordinates);
+			}
+			if(feature.place) {
+				feature.place.coordinates = reprojectCoordinates(coordRefSys, feature.place.coordinates);
+			}
 		}
 	}
 
